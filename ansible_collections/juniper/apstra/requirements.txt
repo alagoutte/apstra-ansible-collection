@@ -3,3 +3,4 @@ jmespath>=1.1.0
 jsonpatch>=1.33
 kubernetes>=35.0.0
 requests-oauthlib>=2.0.0
+pyyaml
