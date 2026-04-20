@@ -42,7 +42,7 @@ short_description: Manage EVPN Interconnect Domains and their Gateways in Apstra
 version_added: "0.2.0"
 
 author:
-  - "Juniper Networks"
+  - "Prabhanjan KV (@kvp_jnpr)"
 
 description:
   - This module manages both EVPN Interconnect Domains and

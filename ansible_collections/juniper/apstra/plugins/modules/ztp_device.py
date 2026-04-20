@@ -24,7 +24,7 @@ short_description: Manage ZTP (Zero Touch Provisioning) devices in Apstra
 version_added: "0.1.0"
 
 author:
-  - "Juniper Networks"
+  - "Prabhanjan KV (@kvp_jnpr)"
 
 description:
   - This module allows you to create, delete, and check the status of
