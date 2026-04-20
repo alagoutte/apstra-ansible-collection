@@ -33,38 +33,30 @@ author: "Edwin Jacques (@edwinpjacques)"
 options:
   api_url:
     description:
-      - The URL used to access the Apstra api.
+      - The URL used to access the Apstra api (APSTRA_API_URL).
     type: str
     required: false
-    env:
-      - name: APSTRA_API_URL
   verify_certificates:
     description:
-      - If set to false, SSL certificates will not be verified.
+      - If set to false, SSL certificates will not be verified (APSTRA_VERIFY_CERTIFICATES).
     type: bool
     required: false
     default: True
   username:
     description:
-      - The username for authentication.
+      - The username for authentication (APSTRA_USERNAME).
     type: str
     required: false
-    env:
-      - name: APSTRA_USERNAME
   password:
     description:
-      - The password for authentication.
+      - The password for authentication (APSTRA_PASSWORD).
     type: str
     required: false
-    env:
-      - name: APSTRA_PASSWORD
   auth_token:
     description:
-      - The authentication token to use if already authenticated.
+      - The authentication token to use if already authenticated (APSTRA_AUTH_TOKEN).
     type: str
     required: false
-    env:
-      - name: APSTRA_AUTH_TOKEN
   gather_network_facts:
     description:
       - List of network objects to gather facts about.
