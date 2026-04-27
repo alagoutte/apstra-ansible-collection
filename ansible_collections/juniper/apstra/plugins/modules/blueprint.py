@@ -236,8 +236,10 @@ options:
       - The blueprint node ID to patch (single-node mode).
       - Mutually exclusive with C(assignment).
       - Only used when C(state=node_updated).
+      - Alias C(rack_id) can be used for rack operations.
     type: str
     required: false
+    aliases: [rack_id]
   system_id:
     description:
       - Physical device serial to assign to the node.
@@ -279,8 +281,10 @@ options:
     description:
       - Label to set on the node.
       - Only used when C(state=node_updated).
+      - Alias C(rack_label) can be used for rack operations.
     type: str
     required: false
+    aliases: [rack_label]
   node_properties:
     description:
       - Arbitrary dict of node properties to patch.
@@ -442,7 +446,7 @@ EXAMPLES = """
     id:
       blueprint: "{{ blueprint_id }}"
     current_label: "da_rack_001"
-    node_label: "border-rack-1"
+    rack_label: "border-rack-1"
     node_type: rack
     state: node_updated
 """
@@ -896,7 +900,7 @@ def main():
         if_type=dict(type="str", required=False, default="ethernet"),
         # Node params (state=node_updated)
         assignment=dict(type="dict", required=False),
-        node_id=dict(type="str", required=False),
+        node_id=dict(type="str", required=False, aliases=["rack_id"]),
         system_id=dict(type="str", required=False),
         deploy_mode=dict(
             type="str",
@@ -906,7 +910,7 @@ def main():
         current_label=dict(type="str", required=False),
         node_type=dict(type="str", required=False),
         hostname=dict(type="str", required=False),
-        node_label=dict(type="str", required=False),
+        node_label=dict(type="str", required=False, aliases=["rack_label"]),
         node_properties=dict(type="dict", required=False),
     )
     client_module_args = apstra_client_module_args()

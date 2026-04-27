@@ -279,7 +279,7 @@
       juniper.apstra.blueprint:
         id: "{{ bp_assign.id }}"
         current_label: "{{ rack_original_label }}"
-        node_label: "{{ rack_new_label }}"
+        rack_label: "{{ rack_new_label }}"
         node_type: rack
         state: node_updated
         auth_token: "{{ auth.token }}"
@@ -297,7 +297,7 @@
       juniper.apstra.blueprint:
         id: "{{ bp_assign.id }}"
         current_label: "{{ rack_new_label }}"
-        node_label: "{{ rack_new_label }}"
+        rack_label: "{{ rack_new_label }}"
         node_type: rack
         state: node_updated
         auth_token: "{{ auth.token }}"
@@ -310,28 +310,28 @@
         fail_msg: "Rack rename should be idempotent: {{ rack_rename_idem }}"
         success_msg: "PASSED: Rack rename idempotent — no change on re-run"
 
-    - name: "TEST RACK-3 — Rename rack by node_id (UUID)"
+    - name: "TEST RACK-3 — Rename rack by rack_id (UUID)"
       juniper.apstra.blueprint:
         id: "{{ bp_assign.id }}"
-        node_id: "{{ rack_node_id }}"
-        node_label: "rack-by-uuid"
+        rack_id: "{{ rack_node_id }}"
+        rack_label: "rack-by-uuid"
         state: node_updated
         auth_token: "{{ auth.token }}"
       register: rack_rename_by_id
 
-    - name: Verify rename by node_id
+    - name: Verify rename by rack_id
       ansible.builtin.assert:
         that:
           - rack_rename_by_id.changed
           - rack_rename_by_id.node.label == "rack-by-uuid"
-        fail_msg: "Rack rename by node_id failed: {{ rack_rename_by_id }}"
-        success_msg: "PASSED: Rack renamed via node_id to 'rack-by-uuid'"
+        fail_msg: "Rack rename by rack_id failed: {{ rack_rename_by_id }}"
+        success_msg: "PASSED: Rack renamed via rack_id to 'rack-by-uuid'"
 
     - name: "TEST RACK-4 — Rename rack back to original name"
       juniper.apstra.blueprint:
         id: "{{ bp_assign.id }}"
-        node_id: "{{ rack_node_id }}"
-        node_label: "{{ rack_original_label }}"
+        rack_id: "{{ rack_node_id }}"
+        rack_label: "{{ rack_original_label }}"
         state: node_updated
         auth_token: "{{ auth.token }}"
       register: rack_restore
@@ -348,7 +348,7 @@
       juniper.apstra.blueprint:
         id: "{{ bp_assign.id }}"
         current_label: "nonexistent_rack_xyz"
-        node_label: "should-fail"
+        rack_label: "should-fail"
         node_type: rack
         state: node_updated
         auth_token: "{{ auth.token }}"
