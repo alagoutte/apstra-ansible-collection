@@ -77,7 +77,15 @@ def _raw_patch(client_factory, path, data, ok_codes=(200, 202, 204)):
 # ──────────────────────────────────────────────────────────────────
 
 
-def create_switch_system_links(client_factory, blueprint_id, links, name, hostname):
+def create_switch_system_links(
+    client_factory,
+    blueprint_id,
+    links,
+    name,
+    hostname,
+    port_channel_id_min=0,
+    port_channel_id_max=0,
+):
     """Create a new generic system via switch-system-links API.
 
     Builds the payload from the flat link list, creating one new system.
@@ -91,6 +99,8 @@ def create_switch_system_links(client_factory, blueprint_id, links, name, hostna
         links: List of link definition dicts.
         name: The system name/label.
         hostname: The system hostname.
+        port_channel_id_min: Minimum port channel ID (default 0).
+        port_channel_id_max: Maximum port channel ID (default 0).
 
     Returns:
         dict: The API response (with ``ids`` list of created link IDs).
@@ -158,8 +168,8 @@ def create_switch_system_links(client_factory, blueprint_id, links, name, hostna
                         }
                     ],
                 },
-                "port_channel_id_min": 0,
-                "port_channel_id_max": 0,
+                "port_channel_id_min": port_channel_id_min or 0,
+                "port_channel_id_max": port_channel_id_max or 0,
             }
         ],
     }
