@@ -727,6 +727,142 @@
         success_msg: "TEST 11 PASSED: LAG generic system deleted"
 
     # ══════════════════════════════════════════════════════════════════
+    #  TEST 11b: Create LAG GS with explicit port_channel_id_min/max
+    # ══════════════════════════════════════════════════════════════════
+
+    - name: "Cleanup stale port-channel GS (test-pc-id-gs-tf) if present"
+      juniper.apstra.generic_systems:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "test-pc-id-gs-tf"
+        state: absent
+        auth_token: "{{ auth.token }}"
+      ignore_errors: true
+
+    - name: "TEST 11b - Create LAG GS with port_channel_id_min=30 port_channel_id_max=30"
+      juniper.apstra.generic_systems:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "test-pc-id-gs-tf"
+          hostname: "test-pc-id-gs-tf"
+          port_channel_id_min: 30
+          port_channel_id_max: 30
+          links:
+            - target_switch_id: "{{ test_leaf_id }}"
+              target_switch_if_name: "{{ test_if_name_2 }}"
+              target_switch_if_transform_id: "{{ test_if_transform_id }}"
+              lag_mode: "lacp_active"
+              group_label: "bond0"
+            - target_switch_id: "{{ test_leaf_id }}"
+              target_switch_if_name: "{{ test_if_name_3 }}"
+              target_switch_if_transform_id: "{{ test_if_transform_id }}"
+              lag_mode: "lacp_active"
+              group_label: "bond0"
+        state: present
+        auth_token: "{{ auth.token }}"
+      register: pc_id_gs_create
+
+    - name: Display port-channel GS create result
+      ansible.builtin.debug:
+        var: pc_id_gs_create
+
+    - name: Verify port_channel_id_min and port_channel_id_max were honored on creation
+      ansible.builtin.assert:
+        that:
+          - pc_id_gs_create.changed
+          - pc_id_gs_create.system_id is defined
+          - pc_id_gs_create.port_channel_id_min == 30
+          - pc_id_gs_create.port_channel_id_max == 30
+        fail_msg: >-
+          TEST 11b FAILED: port_channel_id not set correctly on creation.
+          Got min={{ pc_id_gs_create.port_channel_id_min }},
+          max={{ pc_id_gs_create.port_channel_id_max }}, expected 30/30.
+        success_msg: "TEST 11b PASSED: port_channel_id_min=30 and port_channel_id_max=30 honored at creation"
+
+    - name: Save port-channel GS system ID
+      ansible.builtin.set_fact:
+        pc_id_system_id: "{{ pc_id_gs_create.system_id }}"
+
+    # ══════════════════════════════════════════════════════════════════
+    #  TEST 11c: port_channel_id idempotency
+    # ══════════════════════════════════════════════════════════════════
+
+    - name: "TEST 11c - Create same port-channel GS again (idempotency)"
+      juniper.apstra.generic_systems:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "test-pc-id-gs-tf"
+          hostname: "test-pc-id-gs-tf"
+          port_channel_id_min: 30
+          port_channel_id_max: 30
+          links:
+            - target_switch_id: "{{ test_leaf_id }}"
+              target_switch_if_name: "{{ test_if_name_2 }}"
+              target_switch_if_transform_id: "{{ test_if_transform_id }}"
+              lag_mode: "lacp_active"
+              group_label: "bond0"
+            - target_switch_id: "{{ test_leaf_id }}"
+              target_switch_if_name: "{{ test_if_name_3 }}"
+              target_switch_if_transform_id: "{{ test_if_transform_id }}"
+              lag_mode: "lacp_active"
+              group_label: "bond0"
+        state: present
+        auth_token: "{{ auth.token }}"
+      register: pc_id_gs_idem
+
+    - name: Verify port-channel GS create idempotency
+      ansible.builtin.assert:
+        that:
+          - not pc_id_gs_idem.changed
+          - pc_id_gs_idem.port_channel_id_min == 30
+          - pc_id_gs_idem.port_channel_id_max == 30
+        fail_msg: "TEST 11c FAILED: port_channel_id idempotency"
+        success_msg: "TEST 11c PASSED: port_channel_id idempotency - no change"
+
+    # ══════════════════════════════════════════════════════════════════
+    #  TEST 11d: Update port_channel_id_min/max to new values
+    # ══════════════════════════════════════════════════════════════════
+
+    - name: "TEST 11d - Update port_channel_id_min/max to 40"
+      juniper.apstra.generic_systems:
+        id:
+          blueprint: "{{ blueprint_id }}"
+          system_id: "{{ pc_id_system_id }}"
+        body:
+          port_channel_id_min: 40
+          port_channel_id_max: 40
+        state: present
+        auth_token: "{{ auth.token }}"
+      register: pc_id_gs_update
+
+    - name: Display port-channel GS update result
+      ansible.builtin.debug:
+        var: pc_id_gs_update
+
+    - name: Verify port_channel_id was updated
+      ansible.builtin.assert:
+        that:
+          - pc_id_gs_update.changed
+          - pc_id_gs_update.port_channel_id_min == 40
+          - pc_id_gs_update.port_channel_id_max == 40
+        fail_msg: >-
+          TEST 11d FAILED: port_channel_id update failed.
+          Got min={{ pc_id_gs_update.port_channel_id_min }},
+          max={{ pc_id_gs_update.port_channel_id_max }}, expected 40/40.
+        success_msg: "TEST 11d PASSED: port_channel_id updated to 40/40"
+
+    # - name: "TEST 11d cleanup - Delete port-channel GS"
+    #   juniper.apstra.generic_systems:
+    #     id:
+    #       blueprint: "{{ blueprint_id }}"
+    #       system_id: "{{ pc_id_system_id }}"
+    #     state: absent
+    #     auth_token: "{{ auth.token }}"
+
+    # ══════════════════════════════════════════════════════════════════
     #  External GS: Clean up stale renamed GS from prior failed runs
     # ══════════════════════════════════════════════════════════════════
 

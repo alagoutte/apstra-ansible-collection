@@ -866,7 +866,15 @@ def _handle_create_with_links(
     port_channel_id_max,
 ):
     """Create a new generic system with links via switch-system-links."""
-    created = create_switch_system_links(client_factory, bp_id, links, name, hostname)
+    created = create_switch_system_links(
+        client_factory,
+        bp_id,
+        links,
+        name,
+        hostname,
+        port_channel_id_min=port_channel_id_min or 0,
+        port_channel_id_max=port_channel_id_max or 0,
+    )
     link_ids = created.get("ids", [])
 
     # Discover the new system ID by looking up the label
