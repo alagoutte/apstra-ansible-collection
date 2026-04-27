@@ -266,6 +266,15 @@ options:
       - Only used when C(state=node_updated).
     type: str
     required: false
+  node_type:
+    description:
+      - Node type filter used when resolving C(current_label) to a node UUID.
+      - When set (e.g. C(rack), C(system)), only nodes of that type are
+        considered during label lookup, avoiding false matches when nodes
+        of different types share the same label.
+      - Only used when C(state=node_updated) together with C(current_label).
+    type: str
+    required: false
   node_label:
     description:
       - Label to set on the node.
@@ -426,6 +435,16 @@ EXAMPLES = """
     node_label: "leaf1-new"
     hostname: "leaf1-new.example.com"
     state: node_updated
+
+# Rename a rack by its current label (use node_type to target rack nodes)
+- name: Rename rack from 'da_rack_001' to 'border-rack-1'
+  juniper.apstra.blueprint:
+    id:
+      blueprint: "{{ blueprint_id }}"
+    current_label: "da_rack_001"
+    node_label: "border-rack-1"
+    node_type: rack
+    state: node_updated
 """
 
 RETURN = """
@@ -517,6 +536,7 @@ node:
 from ansible_collections.juniper.apstra.plugins.module_utils.apstra.name_resolution import (
     resolve_template_id as _resolve_template_id,
     resolve_graph_node_id,
+    resolve_rack_node_id,
 )
 
 
@@ -743,18 +763,32 @@ def _handle_node_updated(module, client_factory, blueprint_id):
 
     # ── Resolve current_label → node_id ────────────────────────────────────
     current_label = params.get("current_label")
+    node_type = params.get("node_type")
     if current_label and not node_id:
-        all_nodes = list_nodes(client_factory, blueprint_id)
-        matched_id = next(
-            (nid for nid, nprops in all_nodes.items()
-             if nprops.get("label") == current_label),
-            None,
-        )
-        if matched_id is None:
-            module.fail_json(
-                msg=f"No node with label '{current_label}' found in blueprint '{blueprint_id}'"
+        if node_type == "rack":
+            try:
+                node_id = resolve_rack_node_id(
+                    client_factory, blueprint_id, current_label
+                )
+            except ValueError as exc:
+                module.fail_json(msg=str(exc))
+        else:
+            all_nodes = list_nodes(client_factory, blueprint_id)
+            matched_id = next(
+                (
+                    nid
+                    for nid, nprops in all_nodes.items()
+                    if nprops.get("label") == current_label
+                    and (node_type is None or nprops.get("type") == node_type)
+                ),
+                None,
             )
-        node_id = matched_id
+            if matched_id is None:
+                filter_msg = f" of type '{node_type}'" if node_type else ""
+                module.fail_json(
+                    msg=f"No node{filter_msg} with label '{current_label}' found in blueprint '{blueprint_id}'"
+                )
+            node_id = matched_id
 
     # ── Single-node mode (node_id) ────────────────────────────────────────
     if not node_id:
@@ -870,6 +904,7 @@ def main():
             choices=["deploy", "undeploy", "drain", "ready"],
         ),
         current_label=dict(type="str", required=False),
+        node_type=dict(type="str", required=False),
         hostname=dict(type="str", required=False),
         node_label=dict(type="str", required=False),
         node_properties=dict(type="dict", required=False),

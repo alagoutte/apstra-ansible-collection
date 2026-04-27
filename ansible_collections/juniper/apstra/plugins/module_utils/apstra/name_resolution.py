@@ -485,6 +485,48 @@ def resolve_system_node_id(client_factory, blueprint_id, node_ref):
     )
 
 
+def resolve_rack_node_id(client_factory, blueprint_id, rack_ref):
+    """Resolve a rack node reference (UUID or label) to its graph node ID.
+
+    :param client_factory: An ``ApstraClientFactory`` instance.
+    :param blueprint_id: The blueprint UUID.
+    :param rack_ref: The rack node UUID or label.
+    :return: The resolved rack node ID string.
+    """
+    if not rack_ref or _is_uuid(rack_ref):
+        return rack_ref
+
+    results = _run_qe(client_factory, blueprint_id, "node('rack', name='rack')")
+    if not results:
+        raise ValueError(
+            f"Rack '{rack_ref}' not found — no rack nodes exist in blueprint."
+        )
+
+    # Exact ID match
+    for r in results:
+        rack = r.get("rack", {})
+        if rack.get("id") == rack_ref:
+            return rack_ref
+
+    # Exact label match
+    for r in results:
+        rack = r.get("rack", {})
+        if rack.get("label") == rack_ref:
+            return rack["id"]
+
+    # Case-insensitive fallback
+    ref_lower = rack_ref.lower()
+    for r in results:
+        rack = r.get("rack", {})
+        if (rack.get("label") or "").lower() == ref_lower:
+            return rack["id"]
+
+    available = [r.get("rack", {}).get("label", "") for r in results]
+    raise ValueError(
+        f"Rack '{rack_ref}' not found in blueprint. " f"Available: {available}"
+    )
+
+
 def resolve_esi_member_ids(client_factory, blueprint_id, node_ref):
     """Check if *node_ref* is a redundancy-group (ESI/MLAG pair) and return
     the graph node IDs of its member systems.
@@ -1347,7 +1389,9 @@ def resolve_vim_agent_and_system_id(client_factory, vim_ip):
                 )
             return agent_id, system_id
 
-    available = [vim.get("management_ip", "") for vim in all_vims if vim.get("management_ip")]
+    available = [
+        vim.get("management_ip", "") for vim in all_vims if vim.get("management_ip")
+    ]
     raise ValueError(
         f"No VIM found with management_ip '{vim_ip}'. "
         f"Available management IPs: {available}"

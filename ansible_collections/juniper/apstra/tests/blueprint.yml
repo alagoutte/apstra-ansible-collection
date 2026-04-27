@@ -255,6 +255,115 @@
         fail_msg: "Single-node node_id path broken: {{ single_node_result }}"
         success_msg: "PASSED: Single-node path (node_id) still works"
 
+    # ── node_updated: rack rename tests ────────────────────────────
+
+    - name: "Query all rack nodes in blueprint"
+      juniper.apstra.blueprint:
+        id: "{{ bp_assign.id }}"
+        query: "node('rack', name='rack')"
+        state: queried
+        auth_token: "{{ auth.token }}"
+      register: rack_query
+
+    - name: Show rack labels
+      ansible.builtin.debug:
+        msg: "Racks: {{ rack_query.results | map(attribute='rack') | map(attribute='label') | list }}"
+
+    - name: Set first rack facts for rename tests
+      ansible.builtin.set_fact:
+        rack_original_label: "{{ rack_query.results[0].rack.label }}"
+        rack_node_id: "{{ rack_query.results[0].rack.id }}"
+        rack_new_label: "renamed-rack-1"
+
+    - name: "TEST RACK-1 — Rename rack by current_label with node_type=rack"
+      juniper.apstra.blueprint:
+        id: "{{ bp_assign.id }}"
+        current_label: "{{ rack_original_label }}"
+        node_label: "{{ rack_new_label }}"
+        node_type: rack
+        state: node_updated
+        auth_token: "{{ auth.token }}"
+      register: rack_rename
+
+    - name: Verify rack was renamed
+      ansible.builtin.assert:
+        that:
+          - rack_rename.changed
+          - rack_rename.node.label == rack_new_label
+        fail_msg: "Rack rename failed: {{ rack_rename }}"
+        success_msg: "PASSED: Rack renamed from '{{ rack_original_label }}' to '{{ rack_new_label }}'"
+
+    - name: "TEST RACK-2 — Idempotent rack rename (no change)"
+      juniper.apstra.blueprint:
+        id: "{{ bp_assign.id }}"
+        current_label: "{{ rack_new_label }}"
+        node_label: "{{ rack_new_label }}"
+        node_type: rack
+        state: node_updated
+        auth_token: "{{ auth.token }}"
+      register: rack_rename_idem
+
+    - name: Verify idempotency
+      ansible.builtin.assert:
+        that:
+          - not rack_rename_idem.changed
+        fail_msg: "Rack rename should be idempotent: {{ rack_rename_idem }}"
+        success_msg: "PASSED: Rack rename idempotent — no change on re-run"
+
+    - name: "TEST RACK-3 — Rename rack by node_id (UUID)"
+      juniper.apstra.blueprint:
+        id: "{{ bp_assign.id }}"
+        node_id: "{{ rack_node_id }}"
+        node_label: "rack-by-uuid"
+        state: node_updated
+        auth_token: "{{ auth.token }}"
+      register: rack_rename_by_id
+
+    - name: Verify rename by node_id
+      ansible.builtin.assert:
+        that:
+          - rack_rename_by_id.changed
+          - rack_rename_by_id.node.label == "rack-by-uuid"
+        fail_msg: "Rack rename by node_id failed: {{ rack_rename_by_id }}"
+        success_msg: "PASSED: Rack renamed via node_id to 'rack-by-uuid'"
+
+    - name: "TEST RACK-4 — Rename rack back to original name"
+      juniper.apstra.blueprint:
+        id: "{{ bp_assign.id }}"
+        node_id: "{{ rack_node_id }}"
+        node_label: "{{ rack_original_label }}"
+        state: node_updated
+        auth_token: "{{ auth.token }}"
+      register: rack_restore
+
+    - name: Verify restore
+      ansible.builtin.assert:
+        that:
+          - rack_restore.changed
+          - rack_restore.node.label == rack_original_label
+        fail_msg: "Rack restore failed: {{ rack_restore }}"
+        success_msg: "PASSED: Rack restored to original label '{{ rack_original_label }}'"
+
+    - name: "TEST RACK-5 — Non-existent rack label with node_type fails"
+      juniper.apstra.blueprint:
+        id: "{{ bp_assign.id }}"
+        current_label: "nonexistent_rack_xyz"
+        node_label: "should-fail"
+        node_type: rack
+        state: node_updated
+        auth_token: "{{ auth.token }}"
+      register: rack_bad_label
+      ignore_errors: true
+
+    - name: Verify non-existent rack label produces clear error
+      ansible.builtin.assert:
+        that:
+          - rack_bad_label is failed
+          - "'nonexistent_rack_xyz' in rack_bad_label.msg"
+          - "'rack' in rack_bad_label.msg"
+        fail_msg: "Non-existent rack should fail with label in msg"
+        success_msg: "PASSED: Non-existent rack label correctly rejected"
+
     - name: Delete node_updated test blueprint
       juniper.apstra.blueprint:
         id: "{{ bp_assign.id }}"
