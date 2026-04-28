@@ -841,6 +841,7 @@ def main():
     except Exception as e:
         tb = traceback.format_exc()
         module.debug(f"Exception occurred: {str(e)}\n\nStack trace:\n{tb}")
+        result.pop("msg", None)
         module.fail_json(msg=str(e), **result)
 
     module.exit_json(**result)
