@@ -18,7 +18,7 @@ from ansible_collections.juniper.apstra.plugins.module_utils.apstra.client impor
 
 DOCUMENTATION = """
 ---
-module: apstra_authenticate
+module: authenticate
 short_description: Apstra authentication
 description:
   - This module authenticates with Apstra and retrieves an authentication token.  It can also handle logout operations.
