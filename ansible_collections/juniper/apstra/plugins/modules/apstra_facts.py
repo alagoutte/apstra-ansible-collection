@@ -256,9 +256,7 @@ def main():
                 blueprint_id = id_param.get("blueprint")
                 qe_query_str = filter_param.get("blueprints.qe")
                 if not blueprint_id:
-                    module.fail_json(
-                        msg="'blueprints.qe' requires 'blueprint' in id"
-                    )
+                    module.fail_json(msg="'blueprints.qe' requires 'blueprint' in id")
                 if not qe_query_str:
                     module.fail_json(
                         msg="'blueprints.qe' requires the query string in "
@@ -302,6 +300,7 @@ def main():
     except Exception as e:
         tb = traceback.format_exc()
         module.debug(f"Exception occurred: {str(e)}\n\nStack trace:\n{tb}")
+        result.pop("msg", None)
         module.fail_json(msg=str(e), **result)
 
     module.exit_json(**result)
