@@ -499,7 +499,7 @@ def _create_template(client, name, spec):
                 "Create it first with design_type=rack_type."
             )
         rack_types.append(rt)
-        rack_type_counts[rt_name] = rt_count
+        rack_type_counts[rt["id"]] = rt_count
 
     overlay = spec.get("overlay_control_protocol")
     asn_policy = spec.get("asn_allocation_policy", "distinct")
@@ -521,12 +521,28 @@ def _create_template(client, name, spec):
 
 
 def _get_template(client, name):
-    """Try to get an existing template. Returns None if not found."""
+    """Try to get an existing template by name or ID. Returns None if not found."""
+    # Try direct lookup (works when name is an ID or server resolves display names)
     try:
         result = client.templates[name].get()
-        return result if result else None
+        if result:
+            return result
     except Exception:
-        return None
+        pass
+    # Fallback: list all templates and match by display_name
+    try:
+        all_templates = client.templates.list()
+        items = (
+            all_templates.get("items", [])
+            if isinstance(all_templates, dict)
+            else all_templates
+        )
+        for tmpl in items:
+            if isinstance(tmpl, dict) and tmpl.get("display_name") == name:
+                return tmpl
+    except Exception:
+        pass
+    return None
 
 
 # ── Interface Map Helpers ────────────────────────────────────────────────────
