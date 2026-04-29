@@ -294,6 +294,63 @@
             msg: "Test 7 SKIPPED: no LLDP data (no physically connected devices)"
           when: lldp_result.links | length == 0
 
+        # ── Test 8: lldp with update_cabling_map ─────────────────
+        - name: "Test 8: LLDP with update_cabling_map=true"
+          juniper.apstra.cabling_map:
+            id:
+              blueprint: "{{ blueprint_id }}"
+            state: lldp
+            body:
+              update_cabling_map: true
+            auth_token: "{{ auth.token }}"
+          register: lldp_update_cm
+
+        - name: Display update_cabling_map result
+          ansible.builtin.debug:
+            var: lldp_update_cm
+
+        - name: Verify update_cabling_map result structure
+          ansible.builtin.assert:
+            that:
+              - lldp_update_cm is defined
+              - lldp_update_cm.links is defined
+              - lldp_update_cm.links | type_debug == 'list'
+              - lldp_update_cm.nodes is defined
+              - lldp_update_cm.nodes | type_debug == 'dict'
+            fail_msg: "Test 8 FAILED: lldp with update_cabling_map returned unexpected structure"
+            success_msg: >-
+              Test 8 PASSED: update_cabling_map={{ lldp_update_cm.changed }},
+              {{ lldp_update_cm.links | length }} link(s), msg={{ lldp_update_cm.msg }}
+
+        # ── Test 9: lldp with create_new_generic ─────────────────
+        - name: "Test 9: LLDP with create_new_generic=true"
+          juniper.apstra.cabling_map:
+            id:
+              blueprint: "{{ blueprint_id }}"
+            state: lldp
+            body:
+              create_new_generic: true
+            auth_token: "{{ auth.token }}"
+          register: lldp_create_ng
+
+        - name: Display create_new_generic result
+          ansible.builtin.debug:
+            var: lldp_create_ng
+
+        - name: Verify create_new_generic result structure
+          ansible.builtin.assert:
+            that:
+              - lldp_create_ng is defined
+              - lldp_create_ng.links is defined
+              - lldp_create_ng.links | type_debug == 'list'
+              - lldp_create_ng.nodes is defined
+              - lldp_create_ng.nodes | type_debug == 'dict'
+              - "'no new generic systems to create' in lldp_create_ng.msg or 'created' in lldp_create_ng.msg"
+            fail_msg: "Test 9 FAILED: lldp with create_new_generic returned unexpected structure"
+            success_msg: >-
+              Test 9 PASSED: create_new_generic={{ lldp_create_ng.changed }},
+              msg={{ lldp_create_ng.msg }}
+
       # ── Cleanup: always delete the test blueprint ─────────────
       always:
         - name: Delete test blueprint
