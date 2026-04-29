@@ -122,7 +122,9 @@
         that:
           - not lldp_all.changed
           - lldp_all.links | length == 8
-        success_msg: "PASS: 8 LLDP links found"
+          - lldp_all.nodes is defined
+          - lldp_all.nodes | type_debug == 'dict'
+        success_msg: "PASS: 8 LLDP links, {{ lldp_all.nodes | length }} nodes found"
         fail_msg: "FAIL: unexpected LLDP link count ({{ lldp_all.links | length }})"
 
     # ──────────────────────────────────────────────────────────────

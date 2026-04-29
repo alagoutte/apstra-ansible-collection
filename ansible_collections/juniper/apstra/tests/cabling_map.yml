@@ -113,8 +113,10 @@
               - not lldp_result.changed
               - lldp_result.links is defined
               - lldp_result.links | type_debug == 'list'
+              - lldp_result.nodes is defined
+              - lldp_result.nodes | type_debug == 'dict'
             fail_msg: "Test 3 FAILED: lldp state returned unexpected structure"
-            success_msg: "Test 3 PASSED: gathered LLDP data for {{ lldp_result.links | length }} link(s)"
+            success_msg: "Test 3 PASSED: gathered LLDP data for {{ lldp_result.nodes | length }} node(s), {{ lldp_result.links | length }} link(s)"
 
         # ── Test 4: diff — LLDP vs intended ───────────────────────
         # NOTE: diff compares LLDP-discovered physical port connections

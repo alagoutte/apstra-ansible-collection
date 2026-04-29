@@ -17,6 +17,9 @@ from ansible_collections.juniper.apstra.plugins.module_utils.apstra.client impor
 from ansible_collections.juniper.apstra.plugins.module_utils.apstra.name_resolution import (
     resolve_system_node_id,
 )
+from ansible_collections.juniper.apstra.plugins.module_utils.apstra.bp_cabling_map import (
+    get_lldp_nodes,
+)
 
 DOCUMENTATION = """
 ---
@@ -216,6 +219,14 @@ changed:
   description: Indicates whether the module has made any changes.
   type: bool
   returned: always
+nodes:
+  description: >
+    Dictionary of per-system LLDP data keyed by node ID.
+    Each value contains the LLDP telemetry reported by that system
+    (hostname, management IP, system ID, interfaces, etc.).
+    Only returned when C(state=lldp).
+  type: dict
+  returned: when state is lldp
 links:
   description: >
     List of link objects returned by the operation.
@@ -272,16 +283,15 @@ def _get_cabling_map(client_factory, blueprint_id, body):
     return result.get("links", []) if isinstance(result, dict) else []
 
 
-def _get_lldp(client_factory, blueprint_id, body):
+def _get_lldp_links(client_factory, blueprint_id, body):
     """
-    GET /api/blueprints/{id}/cabling-map/lldp
+    GET /api/blueprints/{id}/cabling-map/lldp  (links only, via SDK)
     Optional body key: system_id (str).
     Returns list of link objects.
     """
     client = _get_blueprint_client(client_factory, blueprint_id)
     system_id = (body or {}).get("system_id")
     result = client.blueprints[blueprint_id].cabling_map.lldp.get(system_id=system_id)
-    # SDK already extracts ['links'] and returns the list
     if isinstance(result, list):
         return result
     return result.get("links", []) if isinstance(result, dict) else []
@@ -346,11 +356,15 @@ def _handle_gathered(module, client_factory, blueprint_id):
 def _handle_lldp(module, client_factory, blueprint_id):
     """Return LLDP data from /cabling-map/lldp."""
     body = module.params.get("body") or {}
-    links = _get_lldp(client_factory, blueprint_id, body)
+    system_id = (body or {}).get("system_id")
+    # SDK provides links; nodes require raw_request (not in SDK)
+    links = _get_lldp_links(client_factory, blueprint_id, body)
+    nodes = get_lldp_nodes(client_factory, blueprint_id, system_id=system_id)
     return dict(
         changed=False,
+        nodes=nodes,
         links=links,
-        msg=f"gathered LLDP data for {len(links)} link(s)",
+        msg=f"gathered LLDP data: {len(nodes)} node(s), {len(links)} link(s)",
     )
 
 
