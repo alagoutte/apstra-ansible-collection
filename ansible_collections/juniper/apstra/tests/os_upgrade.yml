@@ -25,8 +25,11 @@
 # Usage:
 #   make test-os_upgrade
 #   make test-os_upgrade ANSIBLE_FLAGS="-v"
-#   # With a different blueprint:
+#   # With a specific blueprint (auto-discovers first available blueprint if omitted):
+#   make test-os_upgrade ANSIBLE_FLAGS="-v -e blueprint=my-blueprint"
 #   make test-os_upgrade ANSIBLE_FLAGS="-v -e blueprint_label=my-blueprint"
+#   # With a specific device (auto-discovers first system node if omitted):
+#   make test-os_upgrade ANSIBLE_FLAGS="-v -e blueprint=my-blueprint -e device_label=my-leaf1"
 
 - name: Test juniper.apstra.os_upgrade
   hosts: localhost
@@ -34,13 +37,15 @@
   connection: local
 
   vars:
-    # Blueprint that already exists on the local Apstra server.
-    # Override with -e blueprint_label=<name> if needed.
-    blueprint_label: "{{ blueprint | default('vg-am-cops-tb-0') }}"
+    # Blueprint to test against.  Override with -e blueprint_label=<name>
+    # or -e blueprint=<name>.  If neither is set, the first available
+    # blueprint on the server is auto-discovered.
+    blueprint_label: "{{ blueprint | default('') }}"
 
-    # A device node label that exists in the blueprint above.
-    # Used for single-device impact_report and expected-error tests.
-    device_label: "{{ esi_leaf1 | default('vg-am-cops-tb-0-leaf1') }}"
+    # A device node label in that blueprint used for single-device tests.
+    # Override with -e device_label=<name> or -e esi_leaf1=<name>.
+    # If neither is set, the first system node in the blueprint is auto-discovered.
+    device_label: "{{ esi_leaf1 | default('') }}"
 
   tasks:
     # ── Auth ──────────────────────────────────────────────────────
@@ -48,6 +53,53 @@
       juniper.apstra.authenticate:
         logout: false
       register: auth
+
+    # ── Auto-discover blueprint if not specified ───────────────────
+    - name: "Discover: list all blueprints (skip if blueprint_label set)"
+      juniper.apstra.apstra_facts:
+        auth_token: "{{ auth.token }}"
+        gather_network_facts:
+          - blueprints
+      register: all_bp_facts
+      when: blueprint_label == ''
+
+    - name: "Discover: set blueprint_label to first available blueprint"
+      ansible.builtin.set_fact:
+        blueprint_label: >-
+          {{ all_bp_facts.ansible_facts.apstra_facts.blueprints
+             | dict2items | map(attribute='value.label') | first }}
+      when: blueprint_label == ''
+
+    - name: "Show blueprint in use"
+      ansible.builtin.debug:
+        msg: "Using blueprint: {{ blueprint_label }}"
+
+    # ── Auto-discover device if not specified ──────────────────────
+    - name: "Discover: get system nodes from blueprint (skip if device_label set)"
+      juniper.apstra.apstra_facts:
+        auth_token: "{{ auth.token }}"
+        id:
+          blueprint: "{{ blueprint_label }}"
+        gather_network_facts:
+          - blueprints.nodes
+        filter:
+          blueprints.nodes: "node_type=system"
+      register: bp_node_facts
+      when: device_label == ''
+
+    - name: "Discover: set device_label to first managed system node in blueprint"
+      ansible.builtin.set_fact:
+        device_label: >-
+          {{ (bp_node_facts.ansible_facts.apstra_facts.blueprints
+              | dict2items | first).value.nodes
+             | dict2items
+             | selectattr('value.management_level', 'eq', 'full_control')
+             | map(attribute='value.label') | first }}
+      when: device_label == ''
+
+    - name: "Show device in use"
+      ansible.builtin.debug:
+        msg: "Using device: {{ device_label }}"
 
     # ── Test 1: state=gathered ─────────────────────────────────────
     # Lists OS images globally.  Always read-only.
