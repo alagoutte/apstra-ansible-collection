@@ -295,12 +295,24 @@ def _create_logical_device(client, name, spec):
 
 
 def _get_logical_device(client, name):
-    """Try to get an existing logical device. Returns None if not found."""
+    """Try to get an existing logical device by name or ID. Returns None if not found."""
+    # Try direct lookup (works when name is an ID or server resolves display names)
     try:
         result = client.logical_devices[name].get()
-        return result if result else None
+        if result:
+            return result
     except Exception:
-        return None
+        pass
+    # Fallback: list all logical devices and match by display_name
+    try:
+        all_lds = client.logical_devices.list()
+        items = all_lds.get("items", []) if isinstance(all_lds, dict) else all_lds
+        for ld in items:
+            if isinstance(ld, dict) and ld.get("display_name") == name:
+                return ld
+    except Exception:
+        pass
+    return None
 
 
 # ── Rack Type Helpers ────────────────────────────────────────────────────────
@@ -409,6 +421,12 @@ def _create_rack_type(client, name, spec):
                 ld_obj = _get_logical_device(client, ld_name)
                 if ld_obj:
                     ld_cache[ld_name] = ld_obj
+                else:
+                    raise Exception(
+                        f"Logical device '{ld_name}' not found. "
+                        "Verify the name matches the display name in "
+                        "Design > Logical Devices."
+                    )
             if isinstance(ld_name, str) and ld_name in ld_cache:
                 system["logical_device"] = ld_cache[ld_name]
 
