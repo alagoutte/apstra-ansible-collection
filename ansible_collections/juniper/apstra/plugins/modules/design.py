@@ -442,12 +442,24 @@ def _create_rack_type(client, name, spec):
 
 
 def _get_rack_type(client, name):
-    """Try to get an existing rack type. Returns None if not found."""
+    """Try to get an existing rack type by name or ID. Returns None if not found."""
+    # Try direct lookup (works when name is an ID or server resolves display names)
     try:
         result = client.rack_types[name].get()
-        return result if result else None
+        if result:
+            return result
     except Exception:
-        return None
+        pass
+    # Fallback: list all rack types and match by display_name
+    try:
+        all_rts = client.rack_types.list()
+        items = all_rts.get("items", []) if isinstance(all_rts, dict) else all_rts
+        for rt in items:
+            if isinstance(rt, dict) and rt.get("display_name") == name:
+                return rt
+    except Exception:
+        pass
+    return None
 
 
 # ── Template Helpers ─────────────────────────────────────────────────────────
