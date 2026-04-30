@@ -295,12 +295,24 @@ def _create_logical_device(client, name, spec):
 
 
 def _get_logical_device(client, name):
-    """Try to get an existing logical device. Returns None if not found."""
+    """Try to get an existing logical device by name or ID. Returns None if not found."""
+    # Try direct lookup (works when name is an ID or server resolves display names)
     try:
         result = client.logical_devices[name].get()
-        return result if result else None
+        if result:
+            return result
     except Exception:
-        return None
+        pass
+    # Fallback: list all logical devices and match by display_name
+    try:
+        all_lds = client.logical_devices.list()
+        items = all_lds.get("items", []) if isinstance(all_lds, dict) else all_lds
+        for ld in items:
+            if isinstance(ld, dict) and ld.get("display_name") == name:
+                return ld
+    except Exception:
+        pass
+    return None
 
 
 # ── Rack Type Helpers ────────────────────────────────────────────────────────
@@ -409,6 +421,12 @@ def _create_rack_type(client, name, spec):
                 ld_obj = _get_logical_device(client, ld_name)
                 if ld_obj:
                     ld_cache[ld_name] = ld_obj
+                else:
+                    raise Exception(
+                        f"Logical device '{ld_name}' not found. "
+                        "Verify the name matches the display name in "
+                        "Design > Logical Devices."
+                    )
             if isinstance(ld_name, str) and ld_name in ld_cache:
                 system["logical_device"] = ld_cache[ld_name]
 
@@ -424,12 +442,24 @@ def _create_rack_type(client, name, spec):
 
 
 def _get_rack_type(client, name):
-    """Try to get an existing rack type. Returns None if not found."""
+    """Try to get an existing rack type by name or ID. Returns None if not found."""
+    # Try direct lookup (works when name is an ID or server resolves display names)
     try:
         result = client.rack_types[name].get()
-        return result if result else None
+        if result:
+            return result
     except Exception:
-        return None
+        pass
+    # Fallback: list all rack types and match by display_name
+    try:
+        all_rts = client.rack_types.list()
+        items = all_rts.get("items", []) if isinstance(all_rts, dict) else all_rts
+        for rt in items:
+            if isinstance(rt, dict) and rt.get("display_name") == name:
+                return rt
+    except Exception:
+        pass
+    return None
 
 
 # ── Template Helpers ─────────────────────────────────────────────────────────
@@ -469,7 +499,7 @@ def _create_template(client, name, spec):
                 "Create it first with design_type=rack_type."
             )
         rack_types.append(rt)
-        rack_type_counts[rt_name] = rt_count
+        rack_type_counts[rt["id"]] = rt_count
 
     overlay = spec.get("overlay_control_protocol")
     asn_policy = spec.get("asn_allocation_policy", "distinct")
@@ -491,12 +521,28 @@ def _create_template(client, name, spec):
 
 
 def _get_template(client, name):
-    """Try to get an existing template. Returns None if not found."""
+    """Try to get an existing template by name or ID. Returns None if not found."""
+    # Try direct lookup (works when name is an ID or server resolves display names)
     try:
         result = client.templates[name].get()
-        return result if result else None
+        if result:
+            return result
     except Exception:
-        return None
+        pass
+    # Fallback: list all templates and match by display_name
+    try:
+        all_templates = client.templates.list()
+        items = (
+            all_templates.get("items", [])
+            if isinstance(all_templates, dict)
+            else all_templates
+        )
+        for tmpl in items:
+            if isinstance(tmpl, dict) and tmpl.get("display_name") == name:
+                return tmpl
+    except Exception:
+        pass
+    return None
 
 
 # ── Interface Map Helpers ────────────────────────────────────────────────────
