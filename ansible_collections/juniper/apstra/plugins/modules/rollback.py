@@ -24,7 +24,7 @@ short_description: Manage blueprint rollback and revisions in Apstra
 version_added: "0.1.0"
 
 author:
-  - "Juniper Networks"
+  - "Vamsi Gavini (@vgavini)"
 
 description:
   - This module allows you to rollback a blueprint to a specific revision,

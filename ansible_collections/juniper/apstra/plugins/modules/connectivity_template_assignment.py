@@ -34,7 +34,7 @@ short_description: Assign or unassign Connectivity Templates to application poin
 version_added: "0.1.0"
 
 author:
-  - "Juniper Networks"
+  - "Vamsi Gavini (@vgavini)"
 
 description:
   - This module assigns or unassigns Connectivity Templates (CTs) to

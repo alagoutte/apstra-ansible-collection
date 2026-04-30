@@ -28,7 +28,7 @@ short_description: Manage external (remote) EVPN gateways in Apstra blueprints
 version_added: "0.1.0"
 
 author:
-  - "Juniper Networks"
+  - "Vamsi Gavini (@vgavini)"
 
 description:
   - This module allows you to create, update, and delete external

@@ -34,7 +34,7 @@ description:
   - Use C(state=present) to create or update a floating IP (idempotent).
   - Use C(state=absent) to delete a floating IP.
 version_added: "0.1.0"
-author: "Juniper Networks"
+author:  "Vamsi Gavini (@vgavini)"
 options:
   id:
     description:
