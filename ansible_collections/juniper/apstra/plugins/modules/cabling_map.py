@@ -17,6 +17,9 @@ from ansible_collections.juniper.apstra.plugins.module_utils.apstra.client impor
 from ansible_collections.juniper.apstra.plugins.module_utils.apstra.name_resolution import (
     resolve_system_node_id,
 )
+from ansible_collections.juniper.apstra.plugins.module_utils.apstra.bp_cabling_map import (
+    get_lldp_nodes,
+)
 
 DOCUMENTATION = """
 ---
@@ -105,6 +108,10 @@ options:
       - For C(gathered), optional keys are C(aggregate_links) (bool) and
         C(system_node_id) (str, UUID or system label) to filter results.
       - For C(lldp), optional key C(system_id) (str) to filter by system.
+        C(update_cabling_map) (bool, default false) syncs the cabling map
+        with LLDP-discovered links. C(create_new_generic) (bool, default
+        false) creates generic systems found in LLDP but missing from the
+        blueprint.
       - For C(diff), optional key C(check_interface_map) (bool, default true)
         to include interface map check.
     type: dict
@@ -155,6 +162,38 @@ EXAMPLES = """
     body:
       system_id: "0C00DC7D8D00"
   register: lldp_system
+
+# ── Sync cabling map with LLDP data ──────────────────────────────
+
+- name: Update cabling map from LLDP discoveries
+  juniper.apstra.cabling_map:
+    id:
+      blueprint: "my-blueprint"
+    state: lldp
+    body:
+      update_cabling_map: true
+  register: lldp_sync
+
+# ── Create new generic systems from LLDP ──────────────────────────
+
+- name: Create generic systems found by LLDP but missing from blueprint
+  juniper.apstra.cabling_map:
+    id:
+      blueprint: "my-blueprint"
+    state: lldp
+    body:
+      create_new_generic: true
+  register: new_generics
+
+- name: Sync cabling map and create new generics in one pass
+  juniper.apstra.cabling_map:
+    id:
+      blueprint: "my-blueprint"
+    state: lldp
+    body:
+      update_cabling_map: true
+      create_new_generic: true
+  register: full_sync
 
 # ── Get LLDP vs intended diff ─────────────────────────────────────
 
@@ -216,6 +255,14 @@ changed:
   description: Indicates whether the module has made any changes.
   type: bool
   returned: always
+nodes:
+  description: >
+    Dictionary of per-system LLDP data keyed by node ID.
+    Each value contains the LLDP telemetry reported by that system
+    (hostname, management IP, system ID, interfaces, etc.).
+    Only returned when C(state=lldp).
+  type: dict
+  returned: when state is lldp
 links:
   description: >
     List of link objects returned by the operation.
@@ -225,6 +272,13 @@ links:
     For C(present), contains the updated cabling map links.
   type: list
   returned: always
+new_generics:
+  description: >
+    List of new generic system items that were created (or would be
+    created in check mode). Only returned when C(state=lldp) with
+    C(body.create_new_generic=true) and items exist.
+  type: list
+  returned: when state is lldp and create_new_generic is true
 msg:
   description: A human-readable message describing what happened.
   type: str
@@ -272,16 +326,15 @@ def _get_cabling_map(client_factory, blueprint_id, body):
     return result.get("links", []) if isinstance(result, dict) else []
 
 
-def _get_lldp(client_factory, blueprint_id, body):
+def _get_lldp_links(client_factory, blueprint_id, body):
     """
-    GET /api/blueprints/{id}/cabling-map/lldp
+    GET /api/blueprints/{id}/cabling-map/lldp  (links only, via SDK)
     Optional body key: system_id (str).
     Returns list of link objects.
     """
     client = _get_blueprint_client(client_factory, blueprint_id)
     system_id = (body or {}).get("system_id")
     result = client.blueprints[blueprint_id].cabling_map.lldp.get(system_id=system_id)
-    # SDK already extracts ['links'] and returns the list
     if isinstance(result, list):
         return result
     return result.get("links", []) if isinstance(result, dict) else []
@@ -344,14 +397,68 @@ def _handle_gathered(module, client_factory, blueprint_id):
 
 
 def _handle_lldp(module, client_factory, blueprint_id):
-    """Return LLDP data from /cabling-map/lldp."""
+    """Return LLDP data from /cabling-map/lldp.
+
+    Optional body keys:
+      - system_id (str): filter by system MAC
+      - update_cabling_map (bool): sync cabling map with LLDP links
+      - create_new_generic (bool): create generic systems discovered via LLDP
+    """
     body = module.params.get("body") or {}
-    links = _get_lldp(client_factory, blueprint_id, body)
-    return dict(
-        changed=False,
+    system_id = (body or {}).get("system_id")
+    update_cm = bool(body.get("update_cabling_map", False))
+    create_ng = bool(body.get("create_new_generic", False))
+
+    # SDK provides links; nodes require raw_request (not in SDK)
+    links = _get_lldp_links(client_factory, blueprint_id, body)
+    nodes = get_lldp_nodes(client_factory, blueprint_id, system_id=system_id)
+
+    changed = False
+    actions = []
+    new_generics = []
+
+    # ── update_cabling_map ────────────────────────────────────────
+    if update_cm and links:
+        if module.check_mode:
+            actions.append(f"would update cabling map with {len(links)} link(s)")
+            changed = True
+        else:
+            _update_cabling_map(client_factory, blueprint_id, {"links": links})
+            actions.append(f"updated cabling map with {len(links)} link(s)")
+            changed = True
+
+    # ── create_new_generic ────────────────────────────────────────
+    if create_ng:
+        client = _get_blueprint_client(client_factory, blueprint_id)
+        bp = client.blueprints[blueprint_id]
+        items = bp.cabling_map.new_generics.get() or []
+        if items:
+            if module.check_mode:
+                actions.append(f"would create {len(items)} new generic system(s)")
+                changed = True
+                new_generics = items
+            else:
+                for item in items:
+                    bp.add_switch_system_link(item)
+                actions.append(f"created {len(items)} new generic system(s)")
+                changed = True
+                new_generics = items
+        else:
+            actions.append("no new generic systems to create")
+
+    msg_parts = [f"gathered LLDP data: {len(nodes)} node(s), {len(links)} link(s)"]
+    if actions:
+        msg_parts.extend(actions)
+
+    result = dict(
+        changed=changed,
+        nodes=nodes,
         links=links,
-        msg=f"gathered LLDP data for {len(links)} link(s)",
+        msg="; ".join(msg_parts),
     )
+    if new_generics:
+        result["new_generics"] = new_generics
+    return result
 
 
 def _handle_diff(module, client_factory, blueprint_id):
