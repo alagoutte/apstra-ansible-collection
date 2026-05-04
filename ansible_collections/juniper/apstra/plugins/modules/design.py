@@ -2,32 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2024, Juniper Networks
-# MIT License
+# Apache License, Version 2.0 (see https://www.apache.org/licenses/LICENSE-2.0)
 
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
-
-import traceback
-
-from ansible.module_utils.basic import AnsibleModule
-
-from ansible_collections.juniper.apstra.plugins.module_utils.apstra.client import (
-    apstra_client_module_args,
-    ApstraClientFactory,
-)
-
-try:
-    import aos.sdk.generator as g
-except ImportError:
-    g = None
-
-try:
-    from aos.sdk.interface_map.interface_map_generator import (
-        gen_interface_map as _sdk_gen_interface_map,
-    )
-except ImportError:
-    _sdk_gen_interface_map = None
 
 DOCUMENTATION = """
 ---
@@ -56,6 +35,16 @@ options:
     type: bool
     required: false
     default: true
+  username:
+    description:
+      - The username for authentication.
+    type: str
+    required: false
+  password:
+    description:
+      - The password for authentication.
+    type: str
+    required: false
   auth_token:
     description:
       - The authentication token to use if already authenticated.
@@ -257,6 +246,27 @@ changed:
   type: bool
   returned: always
 """
+
+import traceback
+
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.juniper.apstra.plugins.module_utils.apstra.client import (
+    apstra_client_module_args,
+    ApstraClientFactory,
+)
+
+try:
+    import aos.sdk.generator as g
+except ImportError:
+    g = None
+
+try:
+    from aos.sdk.interface_map.interface_map_generator import (
+        gen_interface_map as _sdk_gen_interface_map,
+    )
+except ImportError:
+    _sdk_gen_interface_map = None
 
 
 # ── Logical Device Helpers ───────────────────────────────────────────────────

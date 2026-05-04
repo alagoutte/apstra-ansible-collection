@@ -1,24 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2024 Juniper Networks, Inc.
-# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt)
+# Copyright (c) 2024, Juniper Networks
+# Apache License, Version 2.0 (see https://www.apache.org/licenses/LICENSE-2.0)
 
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
-
-import traceback
-import uuid
-
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.juniper.apstra.plugins.module_utils.apstra.client import (
-    ApstraClientFactory,
-    apstra_client_module_args,
-)
-from ansible_collections.juniper.apstra.plugins.module_utils.apstra.name_resolution import (
-    resolve_virtual_network_id,
-)
 
 DOCUMENTATION = """
 ---
@@ -36,6 +24,32 @@ description:
 version_added: "0.1.0"
 author:  "Vamsi Gavini (@vgavini)"
 options:
+  api_url:
+    description:
+      - The URL used to access the Apstra api.
+    type: str
+    required: false
+  verify_certificates:
+    description:
+      - If set to false, SSL certificates will not be verified.
+    type: bool
+    required: false
+    default: true
+  username:
+    description:
+      - The username for authentication.
+    type: str
+    required: false
+  password:
+    description:
+      - The password for authentication.
+    type: str
+    required: false
+  auth_token:
+    description:
+      - The authentication token to use if already authenticated.
+    type: str
+    required: false
   id:
     description:
       - Identifies the blueprint and optionally the floating IP node.
@@ -198,6 +212,18 @@ msg:
     returned: always
     type: str
 """
+
+import traceback
+import uuid
+
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.juniper.apstra.plugins.module_utils.apstra.client import (
+    ApstraClientFactory,
+    apstra_client_module_args,
+)
+from ansible_collections.juniper.apstra.plugins.module_utils.apstra.name_resolution import (
+    resolve_virtual_network_id,
+)
 
 
 def _get_blueprint_client(client_factory, blueprint_id):
