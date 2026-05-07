@@ -109,8 +109,7 @@ docs: pipenv install
 		--lenient \
 		--project "Juniper Network Apstra Ansible Collection" \
 		--copyright "Juniper Networks, Inc." \
-		--title "Apstra Ansible Collection" \
-		--title "Apstra Ansible Collection" \
+		--title "Apstra Ansible Collection"
 		juniper.apstra
 	pipenv run $(APSTRA_COLLECTION_DOCS_BUILD)/build.sh
 	cp $(APSTRA_COLLECTION_DOCS_BUILD)/rst/*.rst $(APSTRA_COLLECTION_ROOT)/docs/
