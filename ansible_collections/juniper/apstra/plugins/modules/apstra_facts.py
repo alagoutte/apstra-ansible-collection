@@ -16,7 +16,7 @@ description:
   - This module gathers facts from Apstra AOS, including information about
     blueprints, virtual networks, security zones, endpoint policies,
     and application points.
-version_added: "0.1.0"
+version_added: "0.1.1"
 author: "Edwin Jacques (@edwinpjacques)"
 options:
   api_url:
