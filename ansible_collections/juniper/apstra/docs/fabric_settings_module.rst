@@ -7,14 +7,14 @@
 
 .. Anchors
 
-.. _ansible_collections.juniper.apstra.rollback_module:
+.. _ansible_collections.juniper.apstra.fabric_settings_module:
 
 .. Anchors: short name for ansible.builtin
 
 .. Title
 
-juniper.apstra.rollback module -- Manage blueprint rollback and revisions in Apstra
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+juniper.apstra.fabric_settings module -- Manage fabric settings in an Apstra blueprint
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
@@ -26,13 +26,13 @@ juniper.apstra.rollback module -- Manage blueprint rollback and revisions in Aps
 
     To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
-    To use it in a playbook, specify: :code:`juniper.apstra.rollback`.
+    To use it in a playbook, specify: :code:`juniper.apstra.fabric_settings`.
 
 .. version_added
 
 .. rst-class:: ansible-version-added
 
-New in juniper.apstra 0.1.0
+New in juniper.apstra 0.2.0
 
 .. contents::
    :local:
@@ -46,8 +46,11 @@ Synopsis
 
 .. Description
 
-- This module allows you to rollback a blueprint to a specific revision, revert it to the latest backup, or list available revisions.
-- Uses the Apstra API endpoint POST /api/blueprints/{blueprint\_id}/rollback.
+- This module manages fabric\-wide settings within an Apstra blueprint.
+- Settings include MTU values, EVPN parameters, overlay protocol, anti\-affinity policies, default SVI/anycast configuration, and more.
+- Uses the Apstra fabric\-settings API via the AOS SDK.
+- Provides full idempotency. Current settings are fetched and compared before updating.
+- Only the settings specified in :literal:`settings` are modified; other fabric settings remain unchanged.
 
 
 .. Aliases
@@ -81,7 +84,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_url"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__parameter-api_url:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__parameter-api_url:
 
       .. rst-class:: ansible-option-title
 
@@ -115,7 +118,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-auth_token"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__parameter-auth_token:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__parameter-auth_token:
 
       .. rst-class:: ansible-option-title
 
@@ -149,7 +152,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-body"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__parameter-body:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__parameter-body:
 
       .. rst-class:: ansible-option-title
 
@@ -161,7 +164,7 @@ Parameters
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary`
+        :ansible-option-type:`dictionary` / :ansible-option-required:`required`
 
       .. raw:: html
 
@@ -171,9 +174,11 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing rollback parameters.
+      A dictionary of fabric settings to apply.
 
-      Required for :literal:`state=rolledback`. Must include :literal:`revision\_id`.
+      Only the keys provided will be updated; unspecified keys remain unchanged.
+
+      Common keys include :literal:`external\_router\_mtu`\ , :literal:`fabric\_l3\_mtu`\ , :literal:`spine\_leaf\_links\_mtu`\ , :literal:`esi\_mac\_msb`\ , :literal:`anti\_affinity`\ , :literal:`junos\_evpn\_max\_nexthop\_count`\ , :literal:`junos\_evpn\_routing\_instance\_mode\_allowed`\ , :literal:`max\_evpn\_routes`\ , :literal:`overlay\_control\_protocol`\ , :literal:`default\_svi\_l3\_mtu`\ , :literal:`default\_anycast\_gw\_mac`\ , etc.
 
 
       .. raw:: html
@@ -185,7 +190,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-id"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__parameter-id:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__parameter-id:
 
       .. rst-class:: ansible-option-title
 
@@ -207,9 +212,9 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the blueprint ID.
+      Identifies the blueprint scope.
 
-      Must include :literal:`blueprint` key.
+      Must contain :literal:`blueprint` key with the blueprint ID.
 
 
       .. raw:: html
@@ -218,10 +223,53 @@ Parameters
 
   * - .. raw:: html
 
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-id/blueprint"></div>
+
+      .. raw:: latex
+
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
+
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__parameter-id/blueprint:
+
+      .. rst-class:: ansible-option-title
+
+      **blueprint**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-id/blueprint" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string` / :ansible-option-required:`required`
+
+      .. raw:: html
+
+        </div>
+
+      .. raw:: latex
+
+        \end{minipage}
+
+    - .. raw:: html
+
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
+
+      The ID of the blueprint in which to manage fabric settings.
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-password"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__parameter-password:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__parameter-password:
 
       .. rst-class:: ansible-option-title
 
@@ -243,56 +291,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      The password for authentication.
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-state"></div>
-
-      .. _ansible_collections.juniper.apstra.rollback_module__parameter-state:
-
-      .. rst-class:: ansible-option-title
-
-      **state**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-state" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Desired action to perform.
-
-      :literal:`rolledback` rolls back the blueprint to a specific revision.
-
-      :literal:`reverted` reverts the blueprint to the latest backup version.
-
-      :literal:`listed` lists all available revisions (read\-only).
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-choices:`Choices:`
-
-      - :ansible-option-choices-entry-default:`"rolledback"` :ansible-option-choices-default-mark:`← (default)`
-      - :ansible-option-choices-entry:`"reverted"`
-      - :ansible-option-choices-entry:`"listed"`
+      The Apstra password for authentication.
 
 
       .. raw:: html
@@ -304,7 +303,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-username"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__parameter-username:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__parameter-username:
 
       .. rst-class:: ansible-option-title
 
@@ -326,7 +325,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      The username for authentication.
+      The Apstra username for authentication.
 
 
       .. raw:: html
@@ -338,7 +337,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-verify_certificates"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__parameter-verify_certificates:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__parameter-verify_certificates:
 
       .. rst-class:: ansible-option-title
 
@@ -392,25 +391,72 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    - name: List available revisions for a blueprint
-      juniper.apstra.rollback:
-        id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-        state: listed
+    # ── Set fabric MTU ────────────────────────────────────────────────
 
-    - name: Rollback blueprint to a specific revision
-      juniper.apstra.rollback:
+    - name: Configure fabric L3 MTU
+      juniper.apstra.fabric_settings:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+          blueprint: "{{ blueprint_id }}"
         body:
-          revision_id: "30"
-        state: rolledback
+          fabric_l3_mtu: 9170
+          spine_leaf_links_mtu: 9170
+          external_router_mtu: 9100
 
-    - name: Revert blueprint to the latest backup version
-      juniper.apstra.rollback:
+    # ── Configure EVPN settings ──────────────────────────────────────
+
+    - name: Set EVPN overlay parameters
+      juniper.apstra.fabric_settings:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-        state: reverted
+          blueprint: "{{ blueprint_id }}"
+        body:
+          overlay_control_protocol: "evpn"
+          max_evpn_routes: 10000
+          junos_evpn_max_nexthop_count: 2
+
+    # ── Set anycast gateway MAC ───────────────────────────────────────
+
+    - name: Configure default anycast GW MAC
+      juniper.apstra.fabric_settings:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          default_anycast_gw_mac: "00:00:5e:00:01:01"
+
+    # ── Set anti-affinity policy ─────────────────────────────────────
+
+    - name: Configure anti-affinity settings
+      juniper.apstra.fabric_settings:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          anti_affinity:
+            algorithm: "heuristic_enabled"
+            max_links_count_per_slot: 1
+            max_links_per_slot: 1
+            max_svi_inter_count: 0
+
+    # ── ESI MAC configuration ────────────────────────────────────────
+
+    - name: Set ESI MAC MSB
+      juniper.apstra.fabric_settings:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          esi_mac_msb: 2
+
+    # ── Full fabric settings for a new blueprint ─────────────────────
+
+    - name: Apply full fabric settings
+      juniper.apstra.fabric_settings:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          fabric_l3_mtu: 9170
+          spine_leaf_links_mtu: 9170
+          external_router_mtu: 9100
+          overlay_control_protocol: "evpn"
+          default_anycast_gw_mac: "00:00:5e:00:01:01"
+          esi_mac_msb: 2
 
 
 
@@ -439,7 +485,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-changed"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__return-changed:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__return-changed:
 
       .. rst-class:: ansible-option-title
 
@@ -477,54 +523,9 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-id"></div>
-
-      .. _ansible_collections.juniper.apstra.rollback_module__return-id:
-
-      .. rst-class:: ansible-option-title
-
-      **id**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-id" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The blueprint ID dictionary.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` always
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962"}`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-msg"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__return-msg:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__return-msg:
 
       .. rst-class:: ansible-option-title
 
@@ -562,17 +563,17 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-response"></div>
+        <div class="ansibleOptionAnchor" id="return-settings"></div>
 
-      .. _ansible_collections.juniper.apstra.rollback_module__return-response:
+      .. _ansible_collections.juniper.apstra.fabric_settings_module__return-settings:
 
       .. rst-class:: ansible-option-title
 
-      **response**
+      **settings**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#return-response" title="Permalink to this return value"></a>
+        <a class="ansibleOptionLink" href="#return-settings" title="Permalink to this return value"></a>
 
       .. ansible-option-type-line::
 
@@ -586,97 +587,12 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The API response from the rollback or revert operation.
+      The complete fabric settings after the operation.
 
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-returned-bold:`Returned:` when state is rolledback or reverted
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-revision_id"></div>
-
-      .. _ansible_collections.juniper.apstra.rollback_module__return-revision_id:
-
-      .. rst-class:: ansible-option-title
-
-      **revision_id**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-revision_id" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The revision ID that was rolled back to.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` when state is rolledback
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-revisions"></div>
-
-      .. _ansible_collections.juniper.apstra.rollback_module__return-revisions:
-
-      .. rst-class:: ansible-option-title
-
-      **revisions**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-revisions" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      List of available blueprint revisions.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` when state is listed
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`[{"auto\_saved": true, "created\_at": "2026\-03\-03T15:55:27.897696Z", "description": "", "revision\_id": "30", "user": "admin", "user\_ip": "10.108.28.45", "user\_saved": false}]`
+      :ansible-option-returned-bold:`Returned:` always
 
 
       .. raw:: html

@@ -19,12 +19,12 @@ juniper.apstra.virtual_network module -- Manage virtual networks in Apstra
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.5).
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.6).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
-    To install it, use: :code:`ansible-galaxy collection install juniper.apstra`.
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
     To use it in a playbook, specify: :code:`juniper.apstra.virtual_network`.
 
@@ -105,10 +105,6 @@ Parameters
       The URL used to access the Apstra api.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_API\_URL environment variable"`
-
       .. raw:: html
 
         </div>
@@ -142,10 +138,6 @@ Parameters
 
       The authentication token to use if already authenticated.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_AUTH\_TOKEN environment variable"`
 
       .. raw:: html
 
@@ -249,10 +241,6 @@ Parameters
       The password for authentication.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_PASSWORD environment variable"`
-
       .. raw:: html
 
         </div>
@@ -316,7 +304,7 @@ Parameters
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`string`
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
 
       .. raw:: html
 
@@ -362,10 +350,6 @@ Parameters
 
       The username for authentication.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_USERNAME environment variable"`
 
       .. raw:: html
 
@@ -451,6 +435,87 @@ Examples
         body:
           description: "test VN description UPDATE"
           ipv4_enabled: false
+        state: present
+
+    # Use names instead of IDs — security zone and bound_to system labels resolve automatically
+    - name: Create virtual network using names
+      juniper.apstra.virtual_network:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          label: "Test-VN-by-name"
+          vn_type: "vxlan"
+          security_zone_id: "my-routing-zone"
+          bound_to:
+            - system_id: "spine1"
+              vlan_id: 100
+        state: present
+
+    - name: Create virtual network with static IPv4
+      juniper.apstra.virtual_network:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          label: "Test-VN-static-IPv4"
+          vn_type: "vxlan"
+          security_zone_id: "my-routing-zone"
+          vlan_id: 23
+          ipv4_enabled: true
+          ipv4_subnet: 192.0.2.0/24
+          virtual_gateway_ipv4_enabled: true
+          virtual_gateway_ipv4: 192.0.2.254/24
+          bound_to:
+            - system_id: "spine1"
+        state: present
+
+    # Global vlan_id — applies to every bound_to entry that has no per-device override
+    - name: Create virtual network with global VLAN ID
+      juniper.apstra.virtual_network:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          label: "prod-vn"
+          vn_type: "vxlan"
+          vlan_id: 100
+          bound_to:
+            - system_id: "leaf1"
+            - system_id: "leaf2"
+            - system_id: "leaf3"
+              vlan_id: 200    # per-device override wins
+        state: present
+
+    # ESI pair expansion — specify the redundancy-group name; the module expands
+    # it into the two member devices automatically
+    - name: Create virtual network bound to ESI pair
+      juniper.apstra.virtual_network:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          label: "esi-vn"
+          vn_type: "vxlan"
+          vlan_id: 300
+          bound_to:
+            - system_id: "apstra_esi_001_leaf_pair1"   # ESI redundancy group
+        state: present
+
+    # create_policy_tagged — use when you want ONLY a tagged CT and no auto-untagged CT.
+    # Without this, Apstra normally expects an untagged CT; by default the module sets
+    # create_policy_untagged=True automatically for vxlan VNs.  Setting
+    # create_policy_tagged=True explicitly suppresses that auto-injection so only one
+    # tagged connectivity template is created (avoids the unexpected extra VLAN from pool).
+    - name: Create virtual network with tagged-only connectivity template
+      juniper.apstra.virtual_network:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          label: "prod-vn-tagged"
+          vn_type: "vxlan"
+          vlan_id: 254
+          create_policy_tagged: true   # suppresses auto create_policy_untagged injection
+          security_zone_id: "Tenant1"
+          bound_to:
+            - system_id: "DC1-Leaf1"
+            - system_id: "DC1-Leaf2"
         state: present
 
     - name: Delete a virtual network
@@ -599,7 +664,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
       .. rst-class:: ansible-option-line
       .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6-1f33-4e11-8d59-6f9c26f16962", "virtual\_network": "AjAuUuVLylXCUgAqaQ"}`
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962", "virtual\_network": "AjAuUuVLylXCUgAqaQ"}`
 
 
       .. raw:: html
@@ -769,7 +834,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
       .. rst-class:: ansible-option-line
       .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"description": "test VN description", "id": "AjAuUuVLylXCUgAqaQ", "ipv4\_enabled": true, "label": "Test-VN-label", "virtual\_gateway\_ipv4\_enabled": true, "vn\_id": "16777214", "vn\_type": "vxlan"}`
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"description": "test VN description", "id": "AjAuUuVLylXCUgAqaQ", "ipv4\_enabled": true, "label": "Test\-VN\-label", "virtual\_gateway\_ipv4\_enabled": true, "vn\_id": "16777214", "vn\_type": "vxlan"}`
 
 
       .. raw:: html
@@ -787,7 +852,6 @@ Authors
 ~~~~~~~
 
 - Edwin Jacques (@edwinpjacques)
-
 
 
 .. Extra links

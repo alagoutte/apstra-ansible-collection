@@ -2,15 +2,31 @@
 
 :orphan:
 
+.. |antsibull-internal-nbsp| unicode:: 0xA0
+    :trim:
+
+.. Anchors
+
+.. _ansible_collections.juniper.apstra.configlets_module:
+
+.. Anchors: short name for ansible.builtin
+
 .. Title
 
 juniper.apstra.configlets module -- Manage configlets in Apstra
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_.
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.6).
+
+    It is not included in ``ansible-core``.
+    To check whether it is installed, run :code:`ansible-galaxy collection list`.
+
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
+
+    To use it in a playbook, specify: :code:`juniper.apstra.configlets`.
 
 .. version_added
 
@@ -22,41 +38,405 @@ New in juniper.apstra 0.1.0
    :local:
    :depth: 1
 
+.. Deprecated
+
+
 Synopsis
 --------
+
+.. Description
 
 - This module allows you to create, update, and delete configlets in Apstra.
 - Supports both catalog (design) configlets and blueprint configlets.
 - Catalog configlets are stored in the global design catalog.
-- Blueprint configlets are applied to a specific blueprint and include a condition for role-based targeting.
-- Configlets contain one or more generators, each specifying the config style, section, template text, negation template text, and optional filename.
+- Blueprint configlets are applied to a specific blueprint and include a condition for role\-based targeting.
+- Configlets contain one or more generators, each specifying the config style (junos, eos, nxos, sonic), section (system, set\_based\_system, interface, set\_based\_interface, file, ospf, etc.), template text, negation template text, and optional filename.
+
+
+.. Aliases
+
+
+.. Requirements
+
+
+
+
+
+
+.. Options
 
 Parameters
 ----------
 
-**api_url** (string): The URL used to access the Apstra api. Default: APSTRA_API_URL environment variable
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
 
-**auth_token** (string): The authentication token to use if already authenticated. Default: APSTRA_AUTH_TOKEN environment variable
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+  :class: longtable ansible-option-table
 
-**body** (dictionary): Dictionary containing the configlet details. For catalog configlets, keys include ``display_name``, ``ref_archs``, and ``generators``. For blueprint configlets, keys include ``label``, ``condition``, and ``configlet`` (which contains ``display_name`` and ``generators``).
+  * - Parameter
+    - Comments
 
-**id** (dictionary): Dictionary containing the configlet ID. For catalog configlets, use ``configlet`` key. For blueprint configlets, use ``blueprint`` and optionally ``configlet`` keys.
+  * - .. raw:: html
 
-**password** (string): The password for authentication. Default: APSTRA_PASSWORD environment variable
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-api_url"></div>
 
-**state** (string): Desired state of the configlet. Choices: present, absent. Default: present
+      .. _ansible_collections.juniper.apstra.configlets_module__parameter-api_url:
 
-**type** (string): The type of configlet to manage. Choices: catalog, blueprint. Default: catalog
+      .. rst-class:: ansible-option-title
 
-**username** (string): The username for authentication. Default: APSTRA_USERNAME environment variable
+      **api_url**
 
-**verify_certificates** (boolean): If set to false, SSL certificates will not be verified. Default: True
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-api_url" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The URL used to access the Apstra api.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-auth_token"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__parameter-auth_token:
+
+      .. rst-class:: ansible-option-title
+
+      **auth_token**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-auth_token" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The authentication token to use if already authenticated.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-body"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__parameter-body:
+
+      .. rst-class:: ansible-option-title
+
+      **body**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-body" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Dictionary containing the configlet object details.
+
+      For catalog configlets, keys include :literal:`display\_name`\ , :literal:`ref\_archs` (optional, defaults to :literal:`["two\_stage\_l3clos"]`\ ), and :literal:`generators`.
+
+      For blueprint configlets, keys include :literal:`label`\ , :literal:`condition`\ , and :literal:`configlet` (which itself contains :literal:`display\_name` and :literal:`generators`\ ).
+
+      Each generator is a dictionary with :literal:`config\_style`\ , :literal:`template\_text`\ , :literal:`negation\_template\_text`\ , :literal:`section`\ , and :literal:`filename`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-id"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__parameter-id:
+
+      .. rst-class:: ansible-option-title
+
+      **id**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-id" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Dictionary containing the configlet ID.
+
+      For catalog configlets, use :literal:`configlet` key.
+
+      For blueprint configlets, use :literal:`blueprint` and optionally :literal:`configlet` keys.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-password"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__parameter-password:
+
+      .. rst-class:: ansible-option-title
+
+      **password**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-password" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The password for authentication.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-state"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__parameter-state:
+
+      .. rst-class:: ansible-option-title
+
+      **state**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-state" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Desired state of the configlet.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry-default:`"present"` :ansible-option-choices-default-mark:`← (default)`
+      - :ansible-option-choices-entry:`"absent"`
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-type"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__parameter-type:
+
+      .. rst-class:: ansible-option-title
+
+      **type**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-type" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The type of configlet to manage.
+
+      :literal:`catalog` manages global design configlets at /api/design/configlets.
+
+      :literal:`blueprint` manages configlets applied to a specific blueprint.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry-default:`"catalog"` :ansible-option-choices-default-mark:`← (default)`
+      - :ansible-option-choices-entry:`"blueprint"`
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-username"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__parameter-username:
+
+      .. rst-class:: ansible-option-title
+
+      **username**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-username" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The username for authentication.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-verify_certificates"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__parameter-verify_certificates:
+
+      .. rst-class:: ansible-option-title
+
+      **verify_certificates**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-verify_certificates" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      If set to false, SSL certificates will not be verified.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`false`
+      - :ansible-option-choices-entry-default:`true` :ansible-option-choices-default-mark:`← (default)`
+
+
+      .. raw:: html
+
+        </div>
+
+
+.. Attributes
+
+
+.. Notes
+
+
+.. Seealso
+
+
+.. Examples
 
 Examples
 --------
-
-Catalog Configlet
-~~~~~~~~~~~~~~~~~
 
 .. code-block:: yaml+jinja
 
@@ -78,13 +458,11 @@ Catalog Configlet
               filename: ""
         state: present
 
-    - name: Update a catalog configlet
+    - name: Update a catalog configlet by display_name
       juniper.apstra.configlets:
         type: catalog
-        id:
-          configlet: "configlet-uuid-here"
         body:
-          display_name: "SNMP Config Updated"
+          display_name: "SNMP Config"
           ref_archs:
             - "two_stage_l3clos"
           generators:
@@ -98,53 +476,56 @@ Catalog Configlet
               filename: ""
         state: present
 
-    - name: Delete a catalog configlet
+    - name: Delete a catalog configlet by ID
       juniper.apstra.configlets:
         type: catalog
         id:
-          configlet: "configlet-uuid-here"
+          configlet: "550e8400-e29b-41d4-a716-446655440000"
         state: absent
 
-Import Catalog Configlet to Blueprint
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-After creating a catalog configlet, you can import it into a blueprint by
-passing the catalog configlet UUID as ``body.configlet``. The module automatically
-resolves the UUID to the full catalog configlet object required by the Apstra API
-(``POST /api/blueprints/{id}/configlets``).
-
-.. code-block:: yaml+jinja
+    # ── Import Catalog Configlet to Blueprint ───────────────────────────
+    # After creating a catalog configlet, import it into a blueprint by
+    # passing the catalog configlet UUID as body.configlet. The module
+    # automatically resolves the UUID to the full catalog configlet object
+    # required by the Apstra API (POST /api/blueprints/{id}/configlets).
 
     - name: Import catalog configlet to blueprint
       juniper.apstra.configlets:
         type: blueprint
         id:
-          blueprint: "blueprint-uuid-here"
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
         body:
-          configlet: "catalog-configlet-uuid-here"
+          configlet: "550e8400-e29b-41d4-a716-446655440000"
           condition: 'role in ["spine", "leaf"]'
           label: "SNMP Config"
         state: present
       register: bp_import
 
+    # Import using catalog configlet display_name instead of UUID
+    - name: Import catalog configlet by name
+      juniper.apstra.configlets:
+        type: blueprint
+        id:
+          blueprint: "my-blueprint"
+        body:
+          configlet: "SNMP Config"
+          condition: 'role in ["spine", "leaf"]'
+          label: "SNMP Config"
+        state: present
+
     - name: Remove imported catalog configlet from blueprint
       juniper.apstra.configlets:
         type: blueprint
         id:
-          blueprint: "blueprint-uuid-here"
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
           configlet: "{{ bp_import.id.configlet }}"
         state: absent
-
-Blueprint Configlet
-~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: yaml+jinja
 
     - name: Create a blueprint configlet
       juniper.apstra.configlets:
         type: blueprint
         id:
-          blueprint: "blueprint-uuid-here"
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
         body:
           label: "Leaf SNMP Config"
           condition: 'role in ["leaf"]'
@@ -165,8 +546,7 @@ Blueprint Configlet
       juniper.apstra.configlets:
         type: blueprint
         id:
-          blueprint: "blueprint-uuid-here"
-          configlet: "configlet-id-here"
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
         body:
           label: "Leaf SNMP Config"
           condition: 'role in ["leaf", "spine"]'
@@ -183,18 +563,13 @@ Blueprint Configlet
                 filename: ""
         state: present
 
-    - name: Delete a blueprint configlet
+    - name: Delete a blueprint configlet by ID
       juniper.apstra.configlets:
         type: blueprint
         id:
-          blueprint: "blueprint-uuid-here"
-          configlet: "configlet-id-here"
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+          configlet: "AjAuUuVLylXCUgAqaQ"
         state: absent
-
-Template Configlet with Jinja2 Variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: yaml+jinja
 
     - name: Create a catalog configlet with Jinja2 template variables (NTP)
       juniper.apstra.configlets:
@@ -216,11 +591,6 @@ Template Configlet with Jinja2 Variables
               negation_template_text: ""
               filename: ""
         state: present
-
-Multi-Vendor Configlet
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: yaml+jinja
 
     - name: Create a multi-vendor AAA catalog configlet (junos, nxos, eos)
       juniper.apstra.configlets:
@@ -257,16 +627,11 @@ Multi-Vendor Configlet
               filename: ""
         state: present
 
-Blueprint Syslog Configlet
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: yaml+jinja
-
     - name: Create a blueprint syslog configlet
       juniper.apstra.configlets:
         type: blueprint
         id:
-          blueprint: "blueprint-uuid-here"
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
         body:
           label: "Syslog Config"
           condition: 'role in ["leaf", "spine"]'
@@ -287,28 +652,301 @@ Blueprint Syslog Configlet
                 filename: ""
         state: present
 
-Generator Fields
-~~~~~~~~~~~~~~~~
 
-Each generator in the ``generators`` list supports the following fields:
 
-- ``config_style``: The NOS config style. Values: ``junos``, ``eos``, ``nxos``, ``sonic``.
-- ``section``: Where in the config the template is applied. Values: ``system``, ``set_based_system``, ``interface``, ``set_based_interface``, ``file``, ``ospf``, etc.
-- ``template_text``: The Jinja2 template text for the configuration.
-- ``negation_template_text``: Template text for removing the configuration.
-- ``filename``: Optional filename (used with ``file`` section type).
+.. Facts
+
+
+.. Return values
 
 Return Values
 -------------
+Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this module:
 
-**changed** (boolean): Indicates whether the module has made any changes. Returned: always.
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
 
-**changes** (dictionary): Dictionary of updates that were applied. Returned: on update.
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+  :class: longtable ansible-option-table
 
-**response** (dictionary): The configlet object details. Returned: when state is present and changes are made.
+  * - Key
+    - Description
 
-**id** (dictionary): The ID of the configlet. Returned: on create, or when object identified by display_name/label.
+  * - .. raw:: html
 
-**configlet** (dictionary): The final configlet object details. Returned: on create or update.
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-changed"></div>
 
-**msg** (string): The output message that the module generates. Returned: always.
+      .. _ansible_collections.juniper.apstra.configlets_module__return-changed:
+
+      .. rst-class:: ansible-option-title
+
+      **changed**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-changed" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Indicates whether the module has made any changes.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` always
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-changes"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__return-changes:
+
+      .. rst-class:: ansible-option-title
+
+      **changes**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-changes" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Dictionary of updates that were applied.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` on update
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-configlet"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__return-configlet:
+
+      .. rst-class:: ansible-option-title
+
+      **configlet**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-configlet" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The final configlet object details.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` on create or update
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-id"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__return-id:
+
+      .. rst-class:: ansible-option-title
+
+      **id**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-id" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The ID of the configlet.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` on create, or when object identified by display\_name/label
+
+      .. rst-class:: ansible-option-line
+      .. rst-class:: ansible-option-sample
+
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"configlet": "550e8400\-e29b\-41d4\-a716\-446655440000"}`
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-msg"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__return-msg:
+
+      .. rst-class:: ansible-option-title
+
+      **msg**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-msg" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The output message that the module generates.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` always
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-response"></div>
+
+      .. _ansible_collections.juniper.apstra.configlets_module__return-response:
+
+      .. rst-class:: ansible-option-title
+
+      **response**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-response" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The configlet object details.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when state is present and changes are made
+
+
+      .. raw:: html
+
+        </div>
+
+
+
+..  Status (Presently only deprecated)
+
+
+.. Authors
+
+Authors
+~~~~~~~
+
+- Prabhanjan KV (@kvp_jnpr)
+
+
+.. Extra links
+
+Collection links
+~~~~~~~~~~~~~~~~
+
+.. ansible-links::
+
+  - title: "Issue Tracker"
+    url: "https://github.com/Juniper/apstra-ansible-collection/issues"
+    external: true
+  - title: "Homepage"
+    url: "https://www.juniper.net/us/en/products/network-automation/apstra.html"
+    external: true
+  - title: "Repository (Sources)"
+    url: "https://github.com/Juniper/apstra-ansible-collection"
+    external: true
+
+
+.. Parsing errors

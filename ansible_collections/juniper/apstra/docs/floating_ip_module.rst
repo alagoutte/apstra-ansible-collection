@@ -7,14 +7,14 @@
 
 .. Anchors
 
-.. _ansible_collections.juniper.apstra.endpoint_policy_module:
+.. _ansible_collections.juniper.apstra.floating_ip_module:
 
 .. Anchors: short name for ansible.builtin
 
 .. Title
 
-juniper.apstra.endpoint_policy module -- Manage endpoint policies in Apstra
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+juniper.apstra.floating_ip module -- Manage Floating IPs in an Apstra blueprint
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
@@ -26,7 +26,7 @@ juniper.apstra.endpoint_policy module -- Manage endpoint policies in Apstra
 
     To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
-    To use it in a playbook, specify: :code:`juniper.apstra.endpoint_policy`.
+    To use it in a playbook, specify: :code:`juniper.apstra.floating_ip`.
 
 .. version_added
 
@@ -46,7 +46,11 @@ Synopsis
 
 .. Description
 
-- This module allows you to create, update, and delete endpoint policies and application points in Apstra.
+- Create, update, query, or delete Floating IP addresses within an Apstra blueprint.
+- Floating IPs (VIP endpoints) are typically auto\-created by Apstra when Connectivity Templates assign them. This module also allows creating them manually, renaming them (\ :literal:`label`\ ), setting a :literal:`description`\ , and changing the IP address (\ :literal:`ipv4\_addr` / :literal:`ipv6\_addr`\ ).
+- Use :literal:`state=queried` to list all floating IPs or retrieve a single one.
+- Use :literal:`state=present` to create or update a floating IP (idempotent).
+- Use :literal:`state=absent` to delete a floating IP.
 
 
 .. Aliases
@@ -80,7 +84,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_url"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-api_url:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-api_url:
 
       .. rst-class:: ansible-option-title
 
@@ -114,7 +118,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-auth_token"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-auth_token:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-auth_token:
 
       .. rst-class:: ansible-option-title
 
@@ -148,7 +152,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-body"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-body:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-body:
 
       .. rst-class:: ansible-option-title
 
@@ -170,9 +174,25 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the endpoint policy object details.
+      Desired properties of the floating IP.
 
-      If the body contains an entry named "application\_points", it expected to be a list of dicts, each containing a "if\_name" string and a "used" boolean to be used to patch the application points.
+      :literal:`label` (str) — display name shown in the Apstra UI.
+
+      :literal:`description` (str) — free\-text description.
+
+      :literal:`ipv4\_addr` (str) — IPv4 address in CIDR format (e.g. :literal:`10.2.22.201/24`\ ).
+
+      :literal:`ipv6\_addr` (str) — IPv6 address in CIDR format.
+
+      :literal:`virtual\_network` (str) — Virtual network name or UUID. Used as a lookup key to find the floating IP that belongs to that VN. Particularly useful for auto\-created floating IPs which have no label.
+
+      :literal:`virtual\_network\_id` (str) — UUID of the associated virtual network (create only).
+
+      :literal:`vn\_endpoints` (list) — list of VN endpoint IDs (create only).
+
+      :literal:`generic\_system\_ids` (list) — list of generic system IDs (create only).
+
+      When :literal:`state=present`\ , only supplied fields are changed.
 
 
       .. raw:: html
@@ -184,7 +204,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-id"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-id:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-id:
 
       .. rst-class:: ansible-option-title
 
@@ -206,11 +226,11 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the blueprint and endpoint policy IDs.
+      Identifies the blueprint and optionally the floating IP node.
 
-      If only the blueprint ID is provided, the module will attempt to find the endpoint policy by label.
+      :literal:`blueprint` (str, required) — blueprint name or UUID.
 
-      If the label is not provided, but a virtual\_network\_label parameter is given, the label will be used to find the endpoint policy associated with the virtual network with the matching label.
+      :literal:`floating\_ip` (str, optional) — floating IP node UUID. If omitted, the module searches by :literal:`body.label` or :literal:`body.ipv4\_addr`. For creation, a UUID is auto\-generated when no existing floating IP is found.
 
 
       .. raw:: html
@@ -222,7 +242,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-password"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-password:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-password:
 
       .. rst-class:: ansible-option-title
 
@@ -256,7 +276,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-state"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-state:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-state:
 
       .. rst-class:: ansible-option-title
 
@@ -278,7 +298,11 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Desired state of the endpoint policy.
+      :literal:`present` — create or update the floating IP (idempotent).
+
+      :literal:`absent` — delete the floating IP.
+
+      :literal:`queried` — list all floating IPs or retrieve a single one (read\-only).
 
 
       .. rst-class:: ansible-option-line
@@ -287,40 +311,7 @@ Parameters
 
       - :ansible-option-choices-entry-default:`"present"` :ansible-option-choices-default-mark:`← (default)`
       - :ansible-option-choices-entry:`"absent"`
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-tags"></div>
-
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-tags:
-
-      .. rst-class:: ansible-option-title
-
-      **tags**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-tags" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      List of tags to apply to the endpoint policy.
+      - :ansible-option-choices-entry:`"queried"`
 
 
       .. raw:: html
@@ -332,7 +323,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-username"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-username:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-username:
 
       .. rst-class:: ansible-option-title
 
@@ -366,7 +357,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-verify_certificates"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-verify_certificates:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-verify_certificates:
 
       .. rst-class:: ansible-option-title
 
@@ -403,40 +394,6 @@ Parameters
 
         </div>
 
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-virtual_network_label"></div>
-
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__parameter-virtual_network_label:
-
-      .. rst-class:: ansible-option-title
-
-      **virtual_network_label**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-virtual_network_label" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The label of the virtual network to find the endpoint policy for. Used if the endpoing policy id and endpoint label are not provided.
-
-
-      .. raw:: html
-
-        </div>
-
 
 .. Attributes
 
@@ -454,50 +411,103 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    - name: Create an endpoint policy (or update it if the label exists)
-      juniper.apstra.endpoint_policy:
+    # List all floating IPs in a blueprint
+    - name: List floating IPs
+      juniper.apstra.floating_ip:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+          blueprint: "my-blueprint"
+        state: queried
+      register: fip_result
+
+    - name: Show floating IPs
+      ansible.builtin.debug:
+        var: fip_result.floating_ips
+
+    # Get a single floating IP by node ID
+    - name: Get floating IP by ID
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+          floating_ip: "{{ fip_node_id }}"
+        state: queried
+      register: fip
+
+    # Create a new floating IP (POST)
+    - name: Create a floating IP
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
         body:
-          description: "Example routing policy"
-          expect_default_ipv4_route: true
-          expect_default_ipv6_route: true
-          export_policy:
-            l2edge_subnets: true
-            loopbacks: true
-            spine_leaf_links: false
-            spine_superspine_links: false
-            static_routes: false
-          import_policy: "all"
-          label: "example_policy"
-          policy_type: "user_defined"
+          label: "Tenant5-VIP"
+          description: "Primary VIP for Tenant5"
+          ipv4_addr: "10.2.22.201/24"
+        state: present
+      register: fip_create
+
+    # --- PATCH (update) examples ---
+    # The module detects whether the floating IP already exists.
+    # If it does, it issues a PATCH with only the changed fields.
+
+    # PATCH by node ID — most explicit; supply id.floating_ip directly
+    - name: Update floating IP label by node ID (PATCH)
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+          floating_ip: "{{ fip_node_id }}"
+        body:
+          label: "Tenant5-VIP-renamed"
+          description: "Updated description"
         state: present
 
-    - name: Update an endpoint policy
-      juniper.apstra.endpoint_policy:
+    # PATCH by label — module looks up the node ID first, then PATCHes
+    - name: Update floating IP address by label lookup (PATCH)
+      juniper.apstra.floating_ip:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-          endpoint_policy: "AjAuUuVLylXCUgAqaQ"
+          blueprint: "my-blueprint"
         body:
-          description: "test VN description UPDATE"
-
-    - name: Update an endpoint policy application point
-      juniper.apstra.endpoint_policy:
-        id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-        virtual_network_label: "vn25"
-        body:
-          application_points:
-            - remote_host: eda-rack-001-leaf3
-              if_name: "xe-0/0/37"
-              used: true
+          label: "Tenant5-VIP"          # used to FIND the floating IP
+          ipv4_addr: "10.2.22.210/24"   # new address to set via PATCH
         state: present
 
-    - name: Delete an endpoint policy
-      juniper.apstra.endpoint_policy:
+    # PATCH by VN name — finds the floating IP that belongs to a virtual network.
+    # Auto-created floating IPs have no label; use virtual_network to locate them.
+    - name: Name an auto-created floating IP by its VN (PATCH)
+      juniper.apstra.floating_ip:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-          endpoint_policy: "AjAuUuVLylXCUgAqaQ"
+          blueprint: "my-blueprint"
+        body:
+          virtual_network: "Tenant2-VLAN22"   # VN name or UUID — used to FIND the floating IP
+          label: "Tenant2-VIP"                # new label to set via PATCH
+          description: "Auto-created VIP for Tenant2"
+        state: present
+
+    # PATCH by IPv4 address — useful when label is unknown
+    - name: Update floating IP description by ipv4_addr lookup (PATCH)
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          ipv4_addr: "10.2.22.201/24"   # used to FIND the floating IP
+          description: "Found by IP"    # new description to set via PATCH
+        state: present
+
+    # Idempotent update — no change if values already match
+    - name: Ensure floating IP has expected label (idempotent PATCH)
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+          floating_ip: "{{ fip_node_id }}"
+        body:
+          label: "Tenant5-VIP"
+        state: present
+
+    # Delete a floating IP by label
+    - name: Delete floating IP
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          label: "Tenant5-VIP"
         state: absent
 
 
@@ -527,7 +537,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-changed"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__return-changed:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__return-changed:
 
       .. rst-class:: ansible-option-title
 
@@ -549,7 +559,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      Indicates whether the module has made any changes.
+      Whether the floating IP was changed.
 
 
       .. rst-class:: ansible-option-line
@@ -565,17 +575,17 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-changes"></div>
+        <div class="ansibleOptionAnchor" id="return-floating_ip"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__return-changes:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__return-floating_ip:
 
       .. rst-class:: ansible-option-title
 
-      **changes**
+      **floating_ip**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#return-changes" title="Permalink to this return value"></a>
+        <a class="ansibleOptionLink" href="#return-floating_ip" title="Permalink to this return value"></a>
 
       .. ansible-option-type-line::
 
@@ -589,12 +599,17 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      Dictionary of updates that were applied.
+      The current state of the floating IP after the operation.
 
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-returned-bold:`Returned:` on update
+      :ansible-option-returned-bold:`Returned:` when state is present and a single floating IP is targeted
+
+      .. rst-class:: ansible-option-line
+      .. rst-class:: ansible-option-sample
+
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"description": "Primary VIP for Tenant5", "id": "abc123", "immutable": false, "ipv4\_addr": "10.2.22.201/24", "label": "Tenant5\-VIP"}`
 
 
       .. raw:: html
@@ -605,21 +620,21 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-endpoint_policy"></div>
+        <div class="ansibleOptionAnchor" id="return-floating_ips"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__return-endpoint_policy:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__return-floating_ips:
 
       .. rst-class:: ansible-option-title
 
-      **endpoint_policy**
+      **floating_ips**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#return-endpoint_policy" title="Permalink to this return value"></a>
+        <a class="ansibleOptionLink" href="#return-floating_ips" title="Permalink to this return value"></a>
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary`
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=dictionary`
 
       .. raw:: html
 
@@ -629,62 +644,12 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The endpoint policy object details.
+      List of all floating IPs in the blueprint.
 
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-returned-bold:`Returned:` on create or update
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"description": "Example routing policy", "expect\_default\_ipv4\_route": true, "expect\_default\_ipv6\_route": true, "export\_policy": {"l2edge\_subnets": true, "loopbacks": true, "spine\_leaf\_links": false, "spine\_superspine\_links": false, "static\_routes": false}, "id": "AjAuUuVLylXCUgAqaQ", "import\_policy": "all", "label": "example\_policy", "policy\_type": "user\_defined"}`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-id"></div>
-
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__return-id:
-
-      .. rst-class:: ansible-option-title
-
-      **id**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-id" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The ID of the created endpoint policy.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` on create, or when object identified by label
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962", "endpoint\_policy": "AjAuUuVLylXCUgAqaQ"}`
+      :ansible-option-returned-bold:`Returned:` when state is queried and no floating\_ip ID is specified
 
 
       .. raw:: html
@@ -697,7 +662,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-msg"></div>
 
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__return-msg:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__return-msg:
 
       .. rst-class:: ansible-option-title
 
@@ -719,97 +684,12 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The output message that the module generates.
+      Human\-readable result message.
 
 
       .. rst-class:: ansible-option-line
 
       :ansible-option-returned-bold:`Returned:` always
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-response"></div>
-
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__return-response:
-
-      .. rst-class:: ansible-option-title
-
-      **response**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-response" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The endpoint policy object details.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` when state is present and changes are made
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-tag_response"></div>
-
-      .. _ansible_collections.juniper.apstra.endpoint_policy_module__return-tag_response:
-
-      .. rst-class:: ansible-option-title
-
-      **tag_response**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-tag_response" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The response from applying tags to the endpoint policy.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` when tags are applied
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`["red", "blue"]`
 
 
       .. raw:: html
@@ -826,7 +706,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 Authors
 ~~~~~~~
 
-- Edwin Jacques (@edwinpjacques)
+- Vamsi Gavini (@vgavini)
 
 
 .. Extra links

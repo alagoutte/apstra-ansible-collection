@@ -19,7 +19,7 @@ juniper.apstra.connectivity_template module -- Manage Connectivity Templates in 
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.5).
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.6).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
@@ -111,10 +111,6 @@ Parameters
       The URL used to access the Apstra api.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_API\_URL environment variable"`
-
       .. raw:: html
 
         </div>
@@ -149,10 +145,6 @@ Parameters
       The authentication token to use if already authenticated.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_AUTH\_TOKEN environment variable"`
-
       .. raw:: html
 
         </div>
@@ -160,21 +152,21 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-blueprint_id"></div>
+        <div class="ansibleOptionAnchor" id="parameter-body"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-blueprint_id:
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-body:
 
       .. rst-class:: ansible-option-title
 
-      **blueprint_id**
+      **body**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-blueprint_id" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-body" title="Permalink to this option"></a>
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
+        :ansible-option-type:`dictionary`
 
       .. raw:: html
 
@@ -184,7 +176,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      The ID of the Apstra blueprint.
+      A dict containing the Connectivity Template specification.
 
 
       .. raw:: html
@@ -193,46 +185,14 @@ Parameters
 
   * - .. raw:: html
 
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-ct_id"></div>
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-body/description"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-ct_id:
+      .. raw:: latex
 
-      .. rst-class:: ansible-option-title
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
 
-      **ct_id**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-ct_id" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The UUID of an existing Connectivity Template.
-
-      When provided, the module operates on this specific CT instead of looking up by :literal:`name`.
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-description"></div>
-
-      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-description:
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-body/description:
 
       .. rst-class:: ansible-option-title
 
@@ -240,7 +200,7 @@ Parameters
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-description" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-body/description" title="Permalink to this option"></a>
 
       .. ansible-option-type-line::
 
@@ -250,9 +210,13 @@ Parameters
 
         </div>
 
+      .. raw:: latex
+
+        \end{minipage}
+
     - .. raw:: html
 
-        <div class="ansible-option-cell">
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
 
       An optional description for the Connectivity Template.
 
@@ -267,10 +231,14 @@ Parameters
 
   * - .. raw:: html
 
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-name"></div>
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-body/name"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-name:
+      .. raw:: latex
+
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
+
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-body/name:
 
       .. rst-class:: ansible-option-title
 
@@ -278,7 +246,7 @@ Parameters
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-name" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-body/name" title="Permalink to this option"></a>
 
       .. ansible-option-type-line::
 
@@ -288,9 +256,13 @@ Parameters
 
         </div>
 
+      .. raw:: latex
+
+        \end{minipage}
+
     - .. raw:: html
 
-        <div class="ansible-option-cell">
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
 
       The display name of the Connectivity Template.
 
@@ -302,6 +274,323 @@ Parameters
       .. raw:: html
 
         </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-body/new_name"></div>
+
+      .. raw:: latex
+
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
+
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-body/new_name:
+
+      .. rst-class:: ansible-option-title
+
+      **new_name**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-body/new_name" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+      .. raw:: latex
+
+        \end{minipage}
+
+    - .. raw:: html
+
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
+
+      Rename the Connectivity Template identified by :literal:`body.name` (or :literal:`id.ct\_id`\ ) to this new name.
+
+      When provided, only the rename is performed — :literal:`primitives` and :literal:`type` are :strong:`not` required.
+
+      The CT must already exist. Raises an error if not found.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-body/primitives"></div>
+
+      .. raw:: latex
+
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
+
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-body/primitives:
+
+      .. rst-class:: ansible-option-title
+
+      **primitives**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-body/primitives" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+      .. raw:: latex
+
+        \end{minipage}
+
+    - .. raw:: html
+
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
+
+      A dict\-of\-named\-dicts keyed by :strong:`plural` primitive type name.
+
+      Each top\-level key is a primitive type (e.g. :literal:`ip\_links`\ , :literal:`virtual\_network\_singles`\ , :literal:`bgp\_peering\_generic\_systems`\ ).
+
+      Under each type key is a dict of named instances.
+
+      Each instance is a dict of type\-specific attributes passed directly to the Apstra API.
+
+      Child primitives are nested as additional dict keys using their plural type name (e.g. :literal:`bgp\_peering\_generic\_systems` inside an :literal:`ip\_links` instance).
+
+      Supported primitive types: :literal:`ip\_links`\ , :literal:`virtual\_network\_singles`\ , :literal:`virtual\_network\_multiples`\ , :literal:`bgp\_peering\_generic\_systems`\ , :literal:`bgp\_peering\_ip\_endpoints`\ , :literal:`routing\_policies`\ , :literal:`static\_routes`\ , :literal:`custom\_static\_routes`\ , :literal:`dynamic\_bgp\_peerings`\ , :literal:`routing\_zone\_constraints`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-body/tags"></div>
+
+      .. raw:: latex
+
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
+
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-body/tags:
+
+      .. rst-class:: ansible-option-title
+
+      **tags**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-body/tags" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+
+      .. raw:: html
+
+        </div>
+
+      .. raw:: latex
+
+        \end{minipage}
+
+    - .. raw:: html
+
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
+
+      A list of tags to apply to the CT.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-body/type"></div>
+
+      .. raw:: latex
+
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
+
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-body/type:
+
+      .. rst-class:: ansible-option-title
+
+      **type**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-body/type" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+      .. raw:: latex
+
+        \end{minipage}
+
+    - .. raw:: html
+
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
+
+      The type of Connectivity Template, which determines which primitives are allowed and which application point type the CT targets.
+
+      Required when :literal:`state=present`.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`"interface"`
+      - :ansible-option-choices-entry:`"svi"`
+      - :ansible-option-choices-entry:`"loopback"`
+      - :ansible-option-choices-entry:`"protocol\_endpoint"`
+      - :ansible-option-choices-entry:`"system"`
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-id"></div>
+
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-id:
+
+      .. rst-class:: ansible-option-title
+
+      **id**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-id" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary` / :ansible-option-required:`required`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      A dict identifying the target blueprint and optionally an existing Connectivity Template.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-id/blueprint"></div>
+
+      .. raw:: latex
+
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
+
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-id/blueprint:
+
+      .. rst-class:: ansible-option-title
+
+      **blueprint**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-id/blueprint" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string` / :ansible-option-required:`required`
+
+      .. raw:: html
+
+        </div>
+
+      .. raw:: latex
+
+        \end{minipage}
+
+    - .. raw:: html
+
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
+
+      The ID of the Apstra blueprint.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-id/ct_id"></div>
+
+      .. raw:: latex
+
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
+
+      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-id/ct_id:
+
+      .. rst-class:: ansible-option-title
+
+      **ct_id**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-id/ct_id" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+      .. raw:: latex
+
+        \end{minipage}
+
+    - .. raw:: html
+
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
+
+      The UUID of an existing Connectivity Template.
+
+      When provided, the module operates on this specific CT instead of looking up by :literal:`name` in :literal:`body`.
+
+
+      .. raw:: html
+
+        </div>
+
 
   * - .. raw:: html
 
@@ -331,54 +620,6 @@ Parameters
         <div class="ansible-option-cell">
 
       The password for authentication.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_PASSWORD environment variable"`
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-primitives"></div>
-
-      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-primitives:
-
-      .. rst-class:: ansible-option-title
-
-      **primitives**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-primitives" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      A dict\-of\-named\-dicts keyed by :strong:`plural` primitive type name.
-
-      Each top\-level key is a primitive type (e.g. :literal:`ip\_links`\ , :literal:`virtual\_network\_singles`\ , :literal:`bgp\_peering\_generic\_systems`\ ).
-
-      Under each type key is a dict of named instances.
-
-      Each instance is a dict of type\-specific attributes passed directly to the Apstra API.
-
-      Child primitives are nested as additional dict keys using their plural type name (e.g. :literal:`bgp\_peering\_generic\_systems` inside an :literal:`ip\_links` instance).
-
-      Supported primitive types: :literal:`ip\_links`\ , :literal:`virtual\_network\_singles`\ , :literal:`virtual\_network\_multiples`\ , :literal:`bgp\_peering\_generic\_systems`\ , :literal:`bgp\_peering\_ip\_endpoints`\ , :literal:`routing\_policies`\ , :literal:`static\_routes`\ , :literal:`custom\_static\_routes`\ , :literal:`dynamic\_bgp\_peerings`\ , :literal:`routing\_zone\_constraints`.
 
 
       .. raw:: html
@@ -430,87 +671,6 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-tags"></div>
-
-      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-tags:
-
-      .. rst-class:: ansible-option-title
-
-      **tags**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-tags" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      A list of tags to apply to the CT.
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-type"></div>
-
-      .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-type:
-
-      .. rst-class:: ansible-option-title
-
-      **type**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-type" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The type of Connectivity Template, which determines which primitives are allowed and which application point type the CT targets.
-
-      Required when :literal:`state=present`.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-choices:`Choices:`
-
-      - :ansible-option-choices-entry:`"interface"`
-      - :ansible-option-choices-entry:`"svi"`
-      - :ansible-option-choices-entry:`"loopback"`
-      - :ansible-option-choices-entry:`"protocol\_endpoint"`
-      - :ansible-option-choices-entry:`"system"`
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-username"></div>
 
       .. _ansible_collections.juniper.apstra.connectivity_template_module__parameter-username:
@@ -537,10 +697,6 @@ Parameters
 
       The username for authentication.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_USERNAME environment variable"`
 
       .. raw:: html
 
@@ -605,176 +761,280 @@ Examples
 
 .. code-block:: yaml+jinja
 
+    # ── Rename a Connectivity Template ───────────────────────────────────────────
+    # Works for auto-created CTs ("Untagged VxLAN '<VN_NAME>'" etc.) and any
+    # user-created CT.  Only body.name (current name) and body.new_name are needed.
+    # primitives and type are NOT required for a rename-only operation.
+
+    - name: Rename auto-created CT to a friendly name
+      juniper.apstra.connectivity_template:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Untagged VxLAN 'my-vnet'"
+          new_name: "VN-CT"
+        state: present
+
+    # Can also use ct_id to find the CT instead of its current name:
+    - name: Rename CT by ID
+      juniper.apstra.connectivity_template:
+        id:
+          blueprint: "{{ blueprint_id }}"
+          ct_id: "{{ ct_id }}"
+        body:
+          new_name: "VN-CT"
+        state: present
+
     # ── Interface CT type examples ────────────────────────────────────────
 
     # Interface CT: IP Link + BGP Peering + Routing Policy (full nesting)
     - name: Create BGP-to-SRX Connectivity Template
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "BGP-2-SRX"
-        type: interface
-        description: "CT for external router connectivity"
-        tags:
-          - prod
-          - border
-        primitives:
-          ip_links:
-            srx_link:
-              security_zone: "{{ routing_zone_id }}"
-              interface_type: tagged
-              vlan_id: 100
-              ipv4_addressing_type: numbered
-              ipv6_addressing_type: none
-              bgp_peering_generic_systems:
-                srx_peer:
-                  bfd: false
-                  ipv4_safi: true
-                  ipv6_safi: false
-                  ttl: 2
-                  session_addressing_ipv4: addressed
-                  session_addressing_ipv6: link_local
-                  peer_from: interface
-                  peer_to: interface_or_ip_endpoint
-                  neighbor_asn_type: dynamic
-                  routing_policies:
-                    default_rp:
-                      rp_to_attach: "{{ routing_policy_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "BGP-2-SRX"
+          type: interface
+          description: "CT for external router connectivity"
+          tags:
+            - prod
+            - border
+          primitives:
+            ip_links:
+              srx_link:
+                security_zone: "{{ routing_zone_id }}"
+                interface_type: tagged
+                vlan_id: 100
+                ipv4_addressing_type: numbered
+                ipv6_addressing_type: none
+                bgp_peering_generic_systems:
+                  srx_peer:
+                    bfd: false
+                    ipv4_safi: true
+                    ipv6_safi: false
+                    ttl: 2
+                    session_addressing_ipv4: addressed
+                    session_addressing_ipv6: link_local
+                    peer_from: interface
+                    peer_to: interface_or_ip_endpoint
+                    neighbor_asn_type: dynamic
+                    routing_policies:
+                      default_rp:
+                        rp_to_attach: "{{ routing_policy_id }}"
         state: present
       register: ct_result
+
+    # Use human-readable names instead of IDs — security zone, routing policy,
+    # and virtual network labels are resolved automatically
+    - name: Create CT using names instead of IDs
+      juniper.apstra.connectivity_template:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          name: "BGP-Named"
+          type: interface
+          primitives:
+            ip_links:
+              named_link:
+                security_zone: "my-routing-zone"
+                interface_type: tagged
+                vlan_id: 100
+                ipv4_addressing_type: numbered
+                ipv6_addressing_type: none
+                bgp_peering_generic_systems:
+                  peer1:
+                    routing_policies:
+                      rp1:
+                        rp_to_attach: "my-routing-policy"
+            virtual_network_singles:
+              vn1:
+                vn_node_id: "my-virtual-network"
+                tag_type: vlan_tagged   # or: untagged
+        state: present
+
+    # Interface CT: Virtual Network (Single) with BGP Peering (Generic System) child
+    # This is the "BGP-to-HOST" pattern seen in the Apstra UI:
+    #   Application Point → Virtual Network (Single) → BGP Peering (Generic System) → Routing Policy
+    - name: Create BGP-to-HOST CT
+      juniper.apstra.connectivity_template:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "BGP-to-HOST"
+          type: interface
+          description: "BGP peering to hosts via VN"
+          primitives:
+            virtual_network_singles:
+              vn:
+                vn_node_id: "Tenant2-VLAN22"         # VN name or UUID
+                tag_type: vlan_tagged               # or: untagged
+                bgp_peering_generic_systems:
+                  bgp_test:
+                    bfd: false
+                    session_addressing_ipv4: addressed
+                    session_addressing_ipv6: none
+                    ipv4_safi: true
+                    ipv6_safi: false
+                    ttl: 2
+                    holdtime_timer: 90
+                    keepalive_timer: 30
+                    peer_from: interface
+                    peer_to: interface_or_shared_ip_endpoint
+                    neighbor_asn_type: static
+                    routing_policies:
+                      default_rp:
+                        rp_to_attach: "my-routing-policy"
+        state: present
 
     # Interface CT: IP Link with Static Route child
     - name: Create IP Link with Static Route CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Static-Route-Link"
-        type: interface
-        primitives:
-          ip_links:
-            static_link:
-              security_zone: "{{ routing_zone_id }}"
-              interface_type: tagged
-              vlan_id: 200
-              ipv4_addressing_type: numbered
-              ipv6_addressing_type: none
-              static_routes:
-                default_route:
-                  network: "0.0.0.0/0"
-                  share_ip_endpoint: false
-                  routing_policies:
-                    static_rp: {}
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Static-Route-Link"
+          type: interface
+          primitives:
+            ip_links:
+              static_link:
+                security_zone: "{{ routing_zone_id }}"
+                interface_type: tagged
+                vlan_id: 200
+                ipv4_addressing_type: numbered
+                ipv6_addressing_type: none
+                static_routes:
+                  default_route:
+                    network: "0.0.0.0/0"
+                    share_ip_endpoint: false
+                    routing_policies:
+                      static_rp: {}
         state: present
 
     # Interface CT: IP Link with Custom Static Route child
     - name: Create IP Link with Custom Static Route CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Custom-Static-Link"
-        type: interface
-        primitives:
-          ip_links:
-            custom_link:
-              security_zone: "{{ routing_zone_id }}"
-              interface_type: untagged
-              ipv4_addressing_type: numbered
-              ipv6_addressing_type: none
-              custom_static_routes:
-                mgmt_route:
-                  network: "10.0.0.0/8"
-                  next_hop: next_hop_ip
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Custom-Static-Link"
+          type: interface
+          primitives:
+            ip_links:
+              custom_link:
+                security_zone: "{{ routing_zone_id }}"
+                interface_type: untagged
+                ipv4_addressing_type: numbered
+                ipv6_addressing_type: none
+                custom_static_routes:
+                  mgmt_route:
+                    network: "10.0.0.0/8"
+                    next_hop: next_hop_ip
         state: present
 
     # Interface CT: IP Link with Routing Policy (direct — no BGP/static in between)
     - name: Create IP Link with direct Routing Policy CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "IP-Link-Direct-RP"
-        type: interface
-        primitives:
-          ip_links:
-            direct_rp_link:
-              security_zone: "{{ routing_zone_id }}"
-              interface_type: tagged
-              vlan_id: 150
-              ipv4_addressing_type: numbered
-              ipv6_addressing_type: none
-              routing_policies:
-                export_filter:
-                  rp_to_attach: "{{ routing_policy_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "IP-Link-Direct-RP"
+          type: interface
+          primitives:
+            ip_links:
+              direct_rp_link:
+                security_zone: "{{ routing_zone_id }}"
+                interface_type: tagged
+                vlan_id: 150
+                ipv4_addressing_type: numbered
+                ipv6_addressing_type: none
+                routing_policies:
+                  export_filter:
+                    rp_to_attach: "{{ routing_policy_id }}"
         state: present
 
     # Interface CT: Virtual Network (Single) — simple VLAN access
     - name: Create VN Single CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "VLAN-100-Access"
-        type: interface
-        primitives:
-          virtual_network_singles:
-            vlan100:
-              vn_node_id: "{{ virtual_network_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "VLAN-100-Access"
+          type: interface
+          primitives:
+            virtual_network_singles:
+              vlan100:
+                vn_node_id: "{{ virtual_network_id }}"
         state: present
 
     # Interface CT: Virtual Network (Multiple) — trunk with multiple VLANs
     - name: Create VN Multiple CT (trunk)
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Trunk-VLANs"
-        type: interface
-        primitives:
-          virtual_network_multiples:
-            trunk_vlans:
-              tagged_vn_node_ids:
-                - "{{ vn_id_1 }}"
-                - "{{ vn_id_2 }}"
-              untagged_vn_node_id: "{{ native_vn_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Trunk-VLANs"
+          type: interface
+          primitives:
+            virtual_network_multiples:
+              trunk_vlans:
+                tagged_vn_node_ids:
+                  - "{{ vn_id_1 }}"
+                  - "{{ vn_id_2 }}"
+                untagged_vn_node_id: "{{ native_vn_id }}"
         state: present
 
     # Interface CT: Routing Zone Constraint
     - name: Create Routing Zone Constraint CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "RZ-Constraint-Intf"
-        type: interface
-        primitives:
-          routing_zone_constraints:
-            allow_default_only:
-              routing_zone_constraint_mode: allow
-              constraints:
-                - "{{ routing_zone_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "RZ-Constraint-Intf"
+          type: interface
+          primitives:
+            routing_zone_constraints:
+              allow_default_only:
+                routing_zone_constraint_mode: allow
+                constraints:
+                  - "{{ routing_zone_id }}"
         state: present
 
     # Interface CT: Custom Static Route (top-level)
     - name: Create Custom Static Route CT for interface
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Custom-Static-Intf"
-        type: interface
-        primitives:
-          custom_static_routes:
-            default_gw:
-              network: "0.0.0.0/0"
-              next_hop: next_hop_ip
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Custom-Static-Intf"
+          type: interface
+          primitives:
+            custom_static_routes:
+              default_gw:
+                network: "0.0.0.0/0"
+                next_hop: next_hop_ip
         state: present
 
     # Interface CT: Multiple primitives in one CT
     - name: Create CT with both IP Link and Routing Zone Constraint
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Multi-Primitive-CT"
-        type: interface
-        primitives:
-          ip_links:
-            server_link:
-              security_zone: "{{ routing_zone_id }}"
-              interface_type: tagged
-              vlan_id: 300
-              ipv4_addressing_type: numbered
-              ipv6_addressing_type: none
-          routing_zone_constraints:
-            rz_limit:
-              routing_zone_constraint_mode: allow
-              constraints:
-                - "{{ routing_zone_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Multi-Primitive-CT"
+          type: interface
+          primitives:
+            ip_links:
+              server_link:
+                security_zone: "{{ routing_zone_id }}"
+                interface_type: tagged
+                vlan_id: 300
+                ipv4_addressing_type: numbered
+                ipv6_addressing_type: none
+            routing_zone_constraints:
+              rz_limit:
+                routing_zone_constraint_mode: allow
+                constraints:
+                  - "{{ routing_zone_id }}"
         state: present
 
     # ── SVI CT type examples ─────────────────────────────────────────────
@@ -782,83 +1042,93 @@ Examples
     # SVI CT: BGP Peering (Generic System) with Routing Policy
     - name: Create SVI BGP CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "SVI-BGP-Peering"
-        type: svi
-        primitives:
-          bgp_peering_generic_systems:
-            external_peer:
-              bfd: true
-              ipv4_safi: true
-              ipv6_safi: false
-              ttl: 2
-              session_addressing_ipv4: addressed
-              session_addressing_ipv6: link_local
-              peer_from: interface
-              peer_to: interface_or_ip_endpoint
-              neighbor_asn_type: dynamic
-              routing_policies:
-                export_rp:
-                  rp_to_attach: "{{ routing_policy_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "SVI-BGP-Peering"
+          type: svi
+          primitives:
+            bgp_peering_generic_systems:
+              external_peer:
+                bfd: true
+                ipv4_safi: true
+                ipv6_safi: false
+                ttl: 2
+                session_addressing_ipv4: addressed
+                session_addressing_ipv6: link_local
+                peer_from: interface
+                peer_to: interface_or_ip_endpoint
+                neighbor_asn_type: dynamic
+                routing_policies:
+                  export_rp:
+                    rp_to_attach: "{{ routing_policy_id }}"
         state: present
 
     # SVI CT: Dynamic BGP Peering
     - name: Create SVI Dynamic BGP CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "SVI-Dynamic-BGP"
-        type: svi
-        primitives:
-          dynamic_bgp_peerings:
-            auto_peer:
-              ipv4_enabled: true
-              ipv6_enabled: false
-              ttl: 1
-              session_addressing_ipv4: addressed
-              session_addressing_ipv6: link_local
-              bfd: false
-              password: ""
-              routing_policies:
-                bgp_rp: {}
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "SVI-Dynamic-BGP"
+          type: svi
+          primitives:
+            dynamic_bgp_peerings:
+              auto_peer:
+                ipv4_enabled: true
+                ipv6_enabled: false
+                ttl: 1
+                session_addressing_ipv4: addressed
+                session_addressing_ipv6: link_local
+                bfd: false
+                password: ""
+                routing_policies:
+                  bgp_rp: {}
         state: present
 
     # SVI CT: Static Route
     - name: Create SVI Static Route CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "SVI-Static-Route"
-        type: svi
-        primitives:
-          static_routes:
-            default_route:
-              network: "0.0.0.0/0"
-              share_ip_endpoint: false
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "SVI-Static-Route"
+          type: svi
+          primitives:
+            static_routes:
+              default_route:
+                network: "0.0.0.0/0"
+                share_ip_endpoint: false
         state: present
 
     # SVI CT: Virtual Network (Single)
     - name: Create SVI VN Single CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "SVI-VN-Single"
-        type: svi
-        primitives:
-          virtual_network_singles:
-            svi_vlan:
-              vn_node_id: "{{ virtual_network_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "SVI-VN-Single"
+          type: svi
+          primitives:
+            virtual_network_singles:
+              svi_vlan:
+                vn_node_id: "{{ virtual_network_id }}"
         state: present
 
     # SVI CT: Routing Zone Constraint
     - name: Create SVI Routing Zone Constraint CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "SVI-RZ-Constraint"
-        type: svi
-        primitives:
-          routing_zone_constraints:
-            svi_rz_limit:
-              routing_zone_constraint_mode: deny
-              constraints:
-                - "{{ routing_zone_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "SVI-RZ-Constraint"
+          type: svi
+          primitives:
+            routing_zone_constraints:
+              svi_rz_limit:
+                routing_zone_constraint_mode: deny
+                constraints:
+                  - "{{ routing_zone_id }}"
         state: present
 
     # ── Loopback CT type examples ────────────────────────────────────────
@@ -866,48 +1136,54 @@ Examples
     # Loopback CT: BGP Peering (IP Endpoint) with Routing Policy
     - name: Create Loopback BGP IP Endpoint CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Loopback-BGP"
-        type: loopback
-        primitives:
-          bgp_peering_ip_endpoints:
-            lo0_peer:
-              ipv4_safi: true
-              ipv6_safi: false
-              bfd: false
-              ttl: 2
-              session_addressing_ipv4: addressed
-              session_addressing_ipv6: link_local
-              password: ""
-              routing_policies:
-                lo_rp: {}
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Loopback-BGP"
+          type: loopback
+          primitives:
+            bgp_peering_ip_endpoints:
+              lo0_peer:
+                ipv4_safi: true
+                ipv6_safi: false
+                bfd: false
+                ttl: 2
+                session_addressing_ipv4: addressed
+                session_addressing_ipv6: link_local
+                password: ""
+                routing_policies:
+                  lo_rp: {}
         state: present
 
     # Loopback CT: Static Route
     - name: Create Loopback Static Route CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Loopback-Static"
-        type: loopback
-        primitives:
-          static_routes:
-            lo_static:
-              network: "192.168.1.0/24"
-              share_ip_endpoint: false
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Loopback-Static"
+          type: loopback
+          primitives:
+            static_routes:
+              lo_static:
+                network: "192.168.1.0/24"
+                share_ip_endpoint: false
         state: present
 
     # Loopback CT: Routing Zone Constraint
     - name: Create Loopback Routing Zone Constraint CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Loopback-RZ-Constraint"
-        type: loopback
-        primitives:
-          routing_zone_constraints:
-            lo_rz_limit:
-              routing_zone_constraint_mode: allow
-              constraints:
-                - "{{ routing_zone_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Loopback-RZ-Constraint"
+          type: loopback
+          primitives:
+            routing_zone_constraints:
+              lo_rz_limit:
+                routing_zone_constraint_mode: allow
+                constraints:
+                  - "{{ routing_zone_id }}"
         state: present
 
     # ── Protocol Endpoint CT type examples ───────────────────────────────
@@ -915,35 +1191,39 @@ Examples
     # Protocol Endpoint CT: BGP Peering (IP Endpoint)
     - name: Create Protocol Endpoint BGP CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Proto-EP-BGP"
-        type: protocol_endpoint
-        primitives:
-          bgp_peering_ip_endpoints:
-            ep_peer:
-              ipv4_safi: true
-              ipv6_safi: false
-              bfd: true
-              ttl: 1
-              session_addressing_ipv4: addressed
-              session_addressing_ipv6: link_local
-              routing_policies:
-                ep_rp:
-                  rp_to_attach: "{{ routing_policy_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Proto-EP-BGP"
+          type: protocol_endpoint
+          primitives:
+            bgp_peering_ip_endpoints:
+              ep_peer:
+                ipv4_safi: true
+                ipv6_safi: false
+                bfd: true
+                ttl: 1
+                session_addressing_ipv4: addressed
+                session_addressing_ipv6: link_local
+                routing_policies:
+                  ep_rp:
+                    rp_to_attach: "{{ routing_policy_id }}"
         state: present
 
     # Protocol Endpoint CT: Routing Zone Constraint
     - name: Create Protocol Endpoint RZ Constraint CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "Proto-EP-RZ-Constraint"
-        type: protocol_endpoint
-        primitives:
-          routing_zone_constraints:
-            ep_rz_limit:
-              routing_zone_constraint_mode: allow
-              constraints:
-                - "{{ routing_zone_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "Proto-EP-RZ-Constraint"
+          type: protocol_endpoint
+          primitives:
+            routing_zone_constraints:
+              ep_rz_limit:
+                routing_zone_constraint_mode: allow
+                constraints:
+                  - "{{ routing_zone_id }}"
         state: present
 
     # ── System CT type examples ──────────────────────────────────────────
@@ -951,16 +1231,18 @@ Examples
     # System CT: Custom Static Route
     - name: Create System Custom Static Route CT
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "System-Static-Route"
-        type: system
-        primitives:
-          custom_static_routes:
-            sys_default:
-              network: "0.0.0.0/0"
-              next_hop: next_hop_ip
-              routing_policies:
-                sys_rp: {}
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "System-Static-Route"
+          type: system
+          primitives:
+            custom_static_routes:
+              sys_default:
+                network: "0.0.0.0/0"
+                next_hop: next_hop_ip
+                routing_policies:
+                  sys_rp: {}
         state: present
 
     # ── Update and delete examples ───────────────────────────────────────
@@ -968,32 +1250,37 @@ Examples
     # Update an existing CT by name (idempotent — re-run detects no change)
     - name: Update BGP-2-SRX CT (change VLAN)
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "BGP-2-SRX"
-        type: interface
-        description: "Updated CT — new VLAN"
-        primitives:
-          ip_links:
-            srx_link:
-              security_zone: "{{ routing_zone_id }}"
-              interface_type: tagged
-              vlan_id: 200
-              ipv4_addressing_type: numbered
-              ipv6_addressing_type: none
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "BGP-2-SRX"
+          type: interface
+          description: "Updated CT — new VLAN"
+          primitives:
+            ip_links:
+              srx_link:
+                security_zone: "{{ routing_zone_id }}"
+                interface_type: tagged
+                vlan_id: 200
+                ipv4_addressing_type: numbered
+                ipv6_addressing_type: none
         state: present
 
     # Delete a CT by name
     - name: Delete Connectivity Template by name
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "BGP-2-SRX"
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          name: "BGP-2-SRX"
         state: absent
 
     # Delete a CT by ID (using registered output from create)
     - name: Delete Connectivity Template by ID
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        ct_id: "{{ ct_result.ct_id }}"
+        id:
+          blueprint: "{{ blueprint_id }}"
+          ct_id: "{{ ct_result.ct_id }}"
         state: absent
 
 
@@ -1385,7 +1672,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 Authors
 ~~~~~~~
 
-- Juniper Networks
+- Vamsi Gavini (@vgavini)
 
 
 .. Extra links

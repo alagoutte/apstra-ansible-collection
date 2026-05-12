@@ -19,12 +19,12 @@ juniper.apstra.security_zone module -- Manage security zones in Apstra
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.5).
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.6).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
-    To install it, use: :code:`ansible-galaxy collection install juniper.apstra`.
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
     To use it in a playbook, specify: :code:`juniper.apstra.security_zone`.
 
@@ -105,10 +105,6 @@ Parameters
       The URL used to access the Apstra api.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_API\_URL environment variable"`
-
       .. raw:: html
 
         </div>
@@ -142,10 +138,6 @@ Parameters
 
       The authentication token to use if already authenticated.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_AUTH\_TOKEN environment variable"`
 
       .. raw:: html
 
@@ -249,10 +241,6 @@ Parameters
       The password for authentication.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_PASSWORD environment variable"`
-
       .. raw:: html
 
         </div>
@@ -316,7 +304,7 @@ Parameters
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`string`
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
 
       .. raw:: html
 
@@ -362,10 +350,6 @@ Parameters
 
       The username for authentication.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_USERNAME environment variable"`
 
       .. raw:: html
 
@@ -605,7 +589,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
       .. rst-class:: ansible-option-line
       .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6-1f33-4e11-8d59-6f9c26f16962", "security\_zone": "AjAuUuVLylXCUgAqaQ"}`
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962", "security\_zone": "AjAuUuVLylXCUgAqaQ"}`
 
 
       .. raw:: html
@@ -793,7 +777,6 @@ Authors
 ~~~~~~~
 
 - Edwin Jacques (@edwinpjacques)
-
 
 
 .. Extra links

@@ -19,7 +19,7 @@ juniper.apstra.external_gateway module -- Manage external (remote) EVPN gateways
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.5).
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.6).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
@@ -108,10 +108,6 @@ Parameters
       The URL used to access the Apstra api.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_API\_URL environment variable"`
-
       .. raw:: html
 
         </div>
@@ -145,10 +141,6 @@ Parameters
 
       The authentication token to use if already authenticated.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_AUTH\_TOKEN environment variable"`
 
       .. raw:: html
 
@@ -276,10 +268,6 @@ Parameters
       The password for authentication.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_PASSWORD environment variable"`
-
       .. raw:: html
 
         </div>
@@ -355,10 +343,6 @@ Parameters
 
       The username for authentication.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_USERNAME environment variable"`
 
       .. raw:: html
 
@@ -467,6 +451,21 @@ Examples
           gw_asn: 65502
           local_gw_nodes:
             - "PPbnMs25oIuO8WHldA"
+        state: present
+
+    # Use system node labels instead of graph node IDs for local_gw_nodes
+    - name: Create external gateway using node names
+      juniper.apstra.external_gateway:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          gw_name: "dc2_border_gw"
+          gw_ip: "10.1.0.1"
+          gw_asn: 65500
+          local_gw_nodes:
+            - "border-leaf-1"
+            - "border-leaf-2"
+          ttl: 2
         state: present
 
     # Delete an external gateway
@@ -758,7 +757,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 Authors
 ~~~~~~~
 
-- Juniper Networks
+- Vamsi Gavini (@vgavini)
 
 
 .. Extra links

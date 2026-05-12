@@ -14,17 +14,17 @@
 .. Title
 
 juniper.apstra.property_set module -- Manage property sets in Apstra
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.5).
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.6).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
-    To install it, use: :code:`ansible-galaxy collection install juniper.apstra`.
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
     To use it in a playbook, specify: :code:`juniper.apstra.property_set`.
 
@@ -47,11 +47,12 @@ Synopsis
 .. Description
 
 - This module allows you to create, update, and delete property sets in Apstra.
-- Supports two scopes: **Global** (Design > Property Sets catalog) and **Blueprint-scoped**.
-- For global property sets, omit ``blueprint`` from ``id`` and specify ``label`` and ``values`` in ``body``.
-- For Datacenter (two_stage_l3clos) designs, property sets are imported from the global catalog into a blueprint by specifying the global property set ``id`` (and optionally a list of ``keys`` for partial import).
-- For Freeform designs, property sets are created directly within the blueprint by specifying ``label`` and ``values`` (or ``values_yaml``).
-- Property sets allow arbitrary key-value context to be passed to Jinja templates for configuration rendering.
+- Supports two scopes depending on whether :literal:`blueprint` is provided in the :literal:`id` parameter.
+- :strong:`Global scope` (no :literal:`blueprint` in :literal:`id`\ ) manages property sets in the Design \> Property Sets catalog at :literal:`/api/property\-sets`. Specify :literal:`label` and :literal:`values` (dict) in :literal:`body` to create; :literal:`property\_set` in :literal:`id` to get/update/delete.
+- :strong:`Blueprint scope` (\ :literal:`blueprint` in :literal:`id`\ ) manages property sets assigned to a specific blueprint.
+- For Datacenter (two\_stage\_l3clos) designs, property sets are imported from the global catalog into a blueprint by specifying the global property set :literal:`id` (and optionally a list of :literal:`keys` for partial import).
+- For Freeform designs, property sets are created directly within the blueprint by specifying :literal:`label` and :literal:`values` (or :literal:`values\_yaml`\ ).
+- Property sets allow arbitrary key\-value context to be passed to Jinja templates for configuration rendering.
 
 
 .. Aliases
@@ -110,10 +111,6 @@ Parameters
       The URL used to access the Apstra api.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_API\_URL environment variable"`
-
       .. raw:: html
 
         </div>
@@ -148,10 +145,6 @@ Parameters
       The authentication token to use if already authenticated.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_AUTH\_TOKEN environment variable"`
-
       .. raw:: html
 
         </div>
@@ -185,9 +178,13 @@ Parameters
 
       Dictionary containing the property set details.
 
-      For Datacenter designs, use ``id`` (global property set id) and optionally ``keys`` (list of keys for partial import).
+      For global property sets, use :literal:`label` and either :literal:`values` (dict) or :literal:`values\_yaml` (YAML string) to create. Use :literal:`values` or :literal:`values\_yaml` to update. The two fields are alternatives; provide one or the other.
 
-      For Freeform designs, use ``label``, ``values`` (dict) or ``values_yaml`` (string), and optionally ``system_id``.
+      For Datacenter blueprint import, use :literal:`id` (global property set id) and optionally :literal:`keys` (list of keys for partial import).
+
+      For Freeform blueprints, use :literal:`label`\ , :literal:`values` (dict) or :literal:`values\_yaml` (YAML string), and optionally :literal:`system\_id`.
+
+      The API always returns both :literal:`values` and :literal:`values\_yaml` in responses regardless of which was used to create/update.
 
 
       .. raw:: html
@@ -211,7 +208,7 @@ Parameters
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary` / :ansible-option-required:`required`
+        :ansible-option-type:`dictionary`
 
       .. raw:: html
 
@@ -221,7 +218,11 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the blueprint and property set IDs. Must always include ``blueprint``. Include ``property_set`` when updating or deleting a specific property set.
+      Dictionary containing identifiers for the property set.
+
+      For global property sets (Design catalog), omit :literal:`blueprint` and use :literal:`property\_set` for get/update/delete.
+
+      For blueprint\-scoped property sets, include :literal:`blueprint` and optionally :literal:`property\_set`.
 
 
       .. raw:: html
@@ -258,10 +259,6 @@ Parameters
       The password for authentication.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_PASSWORD environment variable"`
-
       .. raw:: html
 
         </div>
@@ -295,6 +292,12 @@ Parameters
 
       Desired state of the property set.
 
+      Use :literal:`present` to create or update.
+
+      Use :literal:`absent` to delete.
+
+      Use :literal:`reimported` to force a reimport of a global property set into a blueprint (PUT). This refreshes the blueprint copy with the latest values from the global catalog, even when the import metadata (\ :literal:`id`\ , :literal:`keys`\ ) has not changed.
+
 
       .. rst-class:: ansible-option-line
 
@@ -302,6 +305,7 @@ Parameters
 
       - :ansible-option-choices-entry-default:`"present"` :ansible-option-choices-default-mark:`← (default)`
       - :ansible-option-choices-entry:`"absent"`
+      - :ansible-option-choices-entry:`"reimported"`
 
 
       .. raw:: html
@@ -337,10 +341,6 @@ Parameters
 
       The username for authentication.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_USERNAME environment variable"`
 
       .. raw:: html
 
@@ -405,7 +405,97 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    # Datacenter design -- import a global property set into a blueprint
+    # Global scope -- create a new property set in the Design catalog
+    - name: Create global property set
+      juniper.apstra.property_set:
+        body:
+          label: "my_custom_ps"
+          values:
+            ntp_server: "10.0.0.1"
+            mtu: 9100
+        state: present
+      register: global_ps
+
+    # Global scope -- update a property set by label (label must be in body)
+    - name: Update global property set by label
+      juniper.apstra.property_set:
+        body:
+          label: "my_custom_ps"
+          values:
+            ntp_server: "10.0.0.2"
+            mtu: 9200
+        state: present
+
+    # Global scope -- update a property set by ID (no label required in body)
+    - name: Update global property set by ID
+      juniper.apstra.property_set:
+        id:
+          property_set: "{{ global_ps.id.property_set }}"
+        body:
+          values:
+            ntp_server: "10.0.0.2"
+            mtu: 9200
+        state: present
+
+    # Global scope -- create using values_yaml key inside values dict
+    - name: Create global property set with values_yaml as a key in values
+      juniper.apstra.property_set:
+        body:
+          label: "my_ps_with_yaml_key"
+          values:
+            ntp_server: "10.0.0.1"
+            values_yaml: "mtu: 9100
+    ospf_area: 0.0.0.0
+    "
+        state: present
+
+    # Global scope -- create using values_yaml (YAML string)
+    - name: Create global property set with YAML string values
+      juniper.apstra.property_set:
+        body:
+          label: "my_yaml_ps"
+          values_yaml: |
+            ntp_server: 10.0.0.1
+            mtu: 9100
+        state: present
+      register: yaml_ps
+
+    # Global scope -- update using values_yaml (label must be in body to identify record)
+    - name: Update global property set with YAML string by label
+      juniper.apstra.property_set:
+        body:
+          label: "my_yaml_ps"
+          values_yaml: |
+            ntp_server: 10.0.0.2
+            mtu: 9200
+        state: present
+
+    # Global scope -- update using values_yaml by ID
+    - name: Update global property set with YAML string by ID
+      juniper.apstra.property_set:
+        id:
+          property_set: "{{ yaml_ps.id.property_set }}"
+        body:
+          values_yaml: |
+            ntp_server: 10.0.0.2
+            mtu: 9200
+        state: present
+
+    # Global scope -- delete a property set by ID
+    - name: Delete global property set by ID
+      juniper.apstra.property_set:
+        id:
+          property_set: "{{ global_ps.id.property_set }}"
+        state: absent
+
+    # Global scope -- delete a property set by label
+    - name: Delete global property set by label
+      juniper.apstra.property_set:
+        body:
+          label: "my_custom_ps"
+        state: absent
+
+    # Blueprint scope -- import a global property set into a blueprint
     - name: Import global property set into blueprint
       juniper.apstra.property_set:
         id:
@@ -414,7 +504,16 @@ Examples
           id: "dcqcn"
         state: present
 
-    # Datacenter design -- partial import with specific keys
+    # Import using property set label instead of UUID
+    - name: Import property set by name
+      juniper.apstra.property_set:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          id: "my_custom_ps"
+        state: present
+
+    # Blueprint scope -- partial import with specific keys
     - name: Import property set with specific keys
       juniper.apstra.property_set:
         id:
@@ -425,7 +524,7 @@ Examples
             - "dcqcn"
         state: present
 
-    # Freeform design -- create a property set directly
+    # Blueprint scope -- Freeform design, create directly
     - name: Create property set in freeform blueprint
       juniper.apstra.property_set:
         id:
@@ -437,8 +536,41 @@ Examples
             ntp_server: "10.0.0.1"
         state: present
 
-    # Delete a property set from a blueprint
-    - name: Delete property set
+    # Blueprint scope -- Freeform design, create using values_yaml
+    - name: Create property set in freeform blueprint with YAML string
+      juniper.apstra.property_set:
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+        body:
+          label: "my_yaml_property_set"
+          values_yaml: |
+            mtu: 9100
+            ntp_server: 10.0.0.1
+        state: present
+
+    # Blueprint scope -- Freeform design, update using values_yaml
+    - name: Update property set in freeform blueprint with YAML string
+      juniper.apstra.property_set:
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+          property_set: "abc-123"
+        body:
+          values_yaml: |
+            mtu: 9200
+            ntp_server: 10.0.0.2
+        state: present
+
+    # Blueprint scope -- reimport a property set (refresh after global update)
+    - name: Reimport property set into blueprint
+      juniper.apstra.property_set:
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+        body:
+          id: "dcqcn"
+        state: reimported
+
+    # Blueprint scope -- delete a property set
+    - name: Delete property set from blueprint
       juniper.apstra.property_set:
         id:
           blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
@@ -584,7 +716,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
       .. rst-class:: ansible-option-line
       .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6-1f33-4e11-8d59-6f9c26f16962", "property_set": "dcqcn"}`
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962", "property\_set": "dcqcn"}`
 
 
       .. raw:: html
@@ -669,7 +801,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
       .. rst-class:: ansible-option-line
       .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"id": "dcqcn", "label": "DataCenter QoS Congestion Notification", "values": {"dcqcn": {"drop_profile": {}}}}`
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"id": "dcqcn", "label": "DataCenter QoS Congestion Notification", "values": {"dcqcn": {"drop\_profile": {}}}}`
 
 
       .. raw:: html
@@ -726,8 +858,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 Authors
 ~~~~~~~
 
-- Juniper Networks
-
+- Vamsi Gavini (@vgavini)
 
 
 .. Extra links

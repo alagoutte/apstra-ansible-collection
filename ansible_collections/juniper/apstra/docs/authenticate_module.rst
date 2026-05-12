@@ -19,12 +19,12 @@ juniper.apstra.authenticate module -- Apstra authentication
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.5).
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.6).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
-    To install it, use: :code:`ansible-galaxy collection install juniper.apstra`.
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
     To use it in a playbook, specify: :code:`juniper.apstra.authenticate`.
 
@@ -105,10 +105,6 @@ Parameters
       The URL used to access the Apstra api.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_API\_URL environment variable"`
-
       .. raw:: html
 
         </div>
@@ -142,10 +138,6 @@ Parameters
 
       The authentication token to use if already authenticated.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_AUTH\_TOKEN environment variable"`
 
       .. raw:: html
 
@@ -223,10 +215,6 @@ Parameters
       The password for authentication.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_PASSWORD environment variable"`
-
       .. raw:: html
 
         </div>
@@ -260,10 +248,6 @@ Parameters
 
       The username for authentication.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_USERNAME environment variable"`
 
       .. raw:: html
 
@@ -427,7 +411,6 @@ Authors
 ~~~~~~~
 
 - Edwin Jacques (@edwinpjacques)
-
 
 
 .. Extra links

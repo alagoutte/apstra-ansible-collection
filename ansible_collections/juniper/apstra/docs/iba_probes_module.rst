@@ -2,15 +2,31 @@
 
 :orphan:
 
+.. |antsibull-internal-nbsp| unicode:: 0xA0
+    :trim:
+
+.. Anchors
+
+.. _ansible_collections.juniper.apstra.iba_probes_module:
+
+.. Anchors: short name for ansible.builtin
+
 .. Title
 
-juniper.apstra.iba_probes module -- Manage IBA probes and dashboards in Apstra
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+juniper.apstra.iba_probes module -- Manage IBA (Intent\-Based Analytics) probes in Apstra
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_.
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.6).
+
+    It is not included in ``ansible-core``.
+    To check whether it is installed, run :code:`ansible-galaxy collection list`.
+
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
+
+    To use it in a playbook, specify: :code:`juniper.apstra.iba_probes`.
 
 .. version_added
 
@@ -22,206 +38,428 @@ New in juniper.apstra 0.1.0
    :local:
    :depth: 1
 
+.. Deprecated
+
+
 Synopsis
 --------
 
-- This module manages IBA (Intent-Based Analytics) probes and dashboards in Apstra blueprints.
-- Supports instantiation of predefined (built-in) probes from a catalog of 48+ probe types.
-- Supports CRUD operations on custom (raw) probes with user-defined processors and stages.
-- Supports CRUD operations on IBA dashboards for probe visualisation.
-- Probes and dashboards can be referenced by UUID or label for all operations (create, read, update, delete).
-- The module uses the Apstra REST API directly via ``raw_request`` as the SDK does not expose a dedicated IBA probe interface.
+.. Description
 
-Overview
---------
+- This module allows you to create, update, delete, and query IBA probes in Apstra blueprints.
+- Supports instantiation of predefined (built\-in) probes as well as custom probe definitions.
+- Also manages IBA dashboards for probe visualisation.
+- Predefined probes are instantiated from a catalog of 48+ built\-in probe types including bgp\_session, traffic, device\_health, ecmp\_imbalance, lag\_imbalance, and many more.
+- Custom probes can be created with user\-defined processors and stages.
+- Probes monitor fabric health, traffic patterns, anomalies, and more.
 
-**Intent-Based Analytics (IBA)** is Apstra's real-time analytics framework that continuously monitors your data centre fabric and raises anomalies when the network deviates from its intended state. At the heart of IBA are **probes** — self-contained analytics pipelines that:
 
-1. **Collect** telemetry from every managed device (counters, BGP state, LLDP, EVPN, etc.).
-2. **Process** data through a chain of processors (aggregation, range checks, comparisons, match counts).
-3. **Produce stages** — intermediate and final result tables that feed dashboards and anomaly detection.
-4. **Raise anomalies** when values fall outside expected ranges.
+.. Aliases
 
-Key Concepts
-~~~~~~~~~~~~
 
-- **Predefined Probe**: A built-in probe template shipped with Apstra. You instantiate it with parameters (label, thresholds, durations). Apstra auto-generates the full processor pipeline.
-- **Custom Probe**: A probe you build from scratch, defining every processor, input, output, and graph query.
-- **Dashboard**: A visual grouping of probe stages in the Apstra UI for at-a-glance monitoring.
-- **Anomaly**: A deviation from expected state raised by a probe.
+.. Requirements
+
+
+
+
+
+
+.. Options
 
 Parameters
 ----------
 
-**api_url** (string): The URL used to access the Apstra api. Default: ``APSTRA_API_URL`` environment variable.
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
 
-**verify_certificates** (boolean): If set to false, SSL certificates will not be verified. Default: ``True``.
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+  :class: longtable ansible-option-table
 
-**username** (string): The username for authentication. Default: ``APSTRA_USERNAME`` environment variable.
+  * - Parameter
+    - Comments
 
-**password** (string): The password for authentication. Default: ``APSTRA_PASSWORD`` environment variable.
+  * - .. raw:: html
 
-**auth_token** (string): The authentication token to use if already authenticated. Default: ``APSTRA_AUTH_TOKEN`` environment variable.
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-api_url"></div>
 
-**type** (string): The type of IBA resource to manage. Choices: ``predefined``, ``probe``, ``dashboard``. Default: ``predefined``.
+      .. _ansible_collections.juniper.apstra.iba_probes_module__parameter-api_url:
 
-  - ``predefined`` — Instantiates a probe from the Apstra predefined probe catalog (48+ types).
-  - ``probe`` — Manages custom (raw) probes directly.
-  - ``dashboard`` — Manages IBA dashboards.
+      .. rst-class:: ansible-option-title
 
-**id** (dictionary): Dictionary containing resource identifiers.
+      **api_url**
 
-  - Always requires ``blueprint`` key with the blueprint UUID or label.
-  - For existing probes, include ``probe`` key with probe UUID or label.
-  - For dashboards, include ``dashboard`` key with dashboard UUID or label.
-  - Name/label resolution is supported for ``blueprint``, ``probe``, and ``dashboard`` keys.
+      .. raw:: html
 
-**body** (dictionary): Dictionary containing the resource details.
+        <a class="ansibleOptionLink" href="#parameter-api_url" title="Permalink to this option"></a>
 
-  - For predefined probes: ``predefined_probe`` is the probe name (e.g. ``bgp_session``), and additional keys are the schema parameters (``label``, ``duration``, ``threshold``, etc.).
-  - For custom probes: keys include ``label``, ``description``, ``disabled``, and ``processors``.
-  - For dashboards: keys include ``label`` and ``description``.
+      .. ansible-option-type-line::
 
-**state** (string): Desired state of the resource. Choices: ``present``, ``absent``. Default: ``present``.
+        :ansible-option-type:`string`
 
-Return Values
--------------
+      .. raw:: html
 
-**changed** (boolean): Indicates whether the module has made any changes. Returned: always.
+        </div>
 
-**id** (dictionary): Dictionary of resource identifiers (``blueprint``, ``probe`` or ``dashboard``). Returned: on create or when found by label.
+    - .. raw:: html
 
-**probe** (dictionary): The full probe object details. Returned: when type is ``predefined`` or ``probe`` with state ``present``.
+        <div class="ansible-option-cell">
 
-**dashboard** (dictionary): The full dashboard object details. Returned: when type is ``dashboard`` with state ``present``.
+      The URL used to access the Apstra api.
 
-**changes** (dictionary): Dictionary of updates that were applied. Returned: on update.
 
-**msg** (string): The output message that the module generates. Returned: always.
+      .. raw:: html
 
-**predefined_probes** (list): List of available predefined probe names. Returned: when type is ``predefined`` with state ``present`` and no ``body`` specified.
+        </div>
 
-Available Predefined Probes (48 Types)
---------------------------------------
+  * - .. raw:: html
 
-Traffic & Bandwidth
-~~~~~~~~~~~~~~~~~~~
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-auth_token"></div>
 
-- ``traffic`` — Monitors interface traffic counters (RX/TX utilization, errors, broadcasts).
-- ``bandwidth_utilization`` — Calculates bandwidth utilization history at varying aggregation levels.
-- ``eastwest_traffic`` — Tracks east-west traffic patterns across the fabric.
-- ``stripe_traffic`` — Monitors traffic distribution across fabric stripes.
+      .. _ansible_collections.juniper.apstra.iba_probes_module__parameter-auth_token:
 
-BGP & Routing
-~~~~~~~~~~~~~
+      .. rst-class:: ansible-option-title
 
-- ``bgp_session`` — Monitors BGP session status; raises anomalies for flapping sessions.
-- ``external_routes`` — Tracks external routes received by the fabric.
-- ``evpn_vxlan_type3`` — Validates EVPN VXLAN Type-3 routes.
-- ``evpn_vxlan_type5`` — Validates EVPN VXLAN Type-5 routes.
+      **auth_token**
 
-Load Balancing & ECMP
-~~~~~~~~~~~~~~~~~~~~~
+      .. raw:: html
 
-- ``fabric_ecmp_imbalance`` — Detects ECMP imbalance across fabric interfaces.
-- ``external_ecmp_imbalance`` — Detects ECMP imbalance on external links.
-- ``spine_superspine_ecmp_imbalance`` — ECMP imbalance between spine and superspine layers.
-- ``lag_imbalance`` — Detects traffic imbalance across LAG member interfaces.
-- ``mlag_imbalance`` — Detects traffic imbalance across MLAG pairs.
-- ``esi_imbalance`` — Detects traffic imbalance across ESI-LAG member interfaces.
+        <a class="ansibleOptionLink" href="#parameter-auth_token" title="Permalink to this option"></a>
 
-Device Health & Telemetry
-~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. ansible-option-type-line::
 
-- ``device_health`` — Alerts when CPU, memory, or disk usage exceeds thresholds.
-- ``device_telemetry_health`` — Monitors telemetry streaming health.
-- ``environmental_data`` — Monitors temperature, fan speed, and power supply status.
-- ``npu_utilization`` — Monitors NPU (Network Processing Unit) utilization.
-- ``pfe_usage`` — Monitors Packet Forwarding Engine memory and filter utilisation.
+        :ansible-option-type:`string`
 
-Interface & Fabric Monitoring
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. raw:: html
 
-- ``fabric_interface_flapping`` — Detects interface flapping on fabric links.
-- ``specific_interface_flapping`` — Monitors flapping on specific named interfaces.
-- ``spine_superspine_interface_flapping`` — Interface flapping on spine-superspine links.
-- ``fabric_hotcold_ifcounter`` — Identifies hot/cold fabric interfaces by counter values.
-- ``specific_hotcold_ifcounter`` — Hot/cold analysis on specific interfaces.
-- ``spine_superspine_hotcold_ifcounter`` — Hot/cold counters on spine-superspine interfaces.
-- ``optical_transceivers`` — Monitors optical transceiver power levels.
-- ``packet_discard_percentage`` — Tracks packet discard rates across interfaces.
+        </div>
 
-Security & Policy
-~~~~~~~~~~~~~~~~~
+    - .. raw:: html
 
-- ``copp`` — Validates Control Plane Policing output; alerts on excessive policer drops.
-- ``interface_policy_dot1x`` — Monitors 802.1X interface policy compliance.
+        <div class="ansible-option-cell">
 
-Fault Tolerance
-~~~~~~~~~~~~~~~
+      The authentication token to use if already authenticated.
 
-- ``spine_fault_tolerance`` — Validates that the fabric can tolerate spine failures.
-- ``lag_fault_tolerance`` — Validates LAG fault tolerance across member links.
 
-EVPN & VXLAN
-~~~~~~~~~~~~~
+      .. raw:: html
 
-- ``evpn_host_flapping`` — Detects hosts flapping between EVPN endpoints.
-- ``vxlan_floodlist`` — Validates VXLAN flood list consistency.
-- ``shared_tunnel_mode`` — Monitors shared tunnel mode operation.
+        </div>
 
-MAC & ARP
-~~~~~~~~~
+  * - .. raw:: html
 
-- ``mac_monitor`` — Monitors MAC address table entries.
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-body"></div>
 
-Server & Compute
-~~~~~~~~~~~~~~~~
+      .. _ansible_collections.juniper.apstra.iba_probes_module__parameter-body:
 
-- ``server_sla_a`` — Server SLA monitoring (type A).
-- ``server_sla_b`` — Server SLA monitoring (type B).
-- ``compute_agent_hw_counters`` — Analyses hardware counters from compute agents.
-- ``multiagent_detector`` — Detects multiple telemetry agents on a single device.
+      .. rst-class:: ansible-option-title
 
-Virtual Infrastructure
-~~~~~~~~~~~~~~~~~~~~~~
+      **body**
 
-- ``hypervisor_mtu_checks`` — Validates MTU settings across hypervisor environments.
-- ``hypervisor_mtu_mismatch`` — Detects MTU mismatches between hypervisors.
-- ``missing_vlan_vms`` — Identifies VMs with missing VLAN configurations.
-- ``virtual_infra_hypervisor_redundancy_checks`` — Validates hypervisor network redundancy.
-- ``virtual_infra_lag_match`` — Checks LAG configuration consistency for virtual infrastructure.
-- ``virtual_infra_missing_lldp`` — Detects missing LLDP on virtual infrastructure ports.
-- ``virtual_infra_vlan_match`` — Validates VLAN configuration matching for virtual infrastructure.
+      .. raw:: html
 
-Drain Operations
-~~~~~~~~~~~~~~~~
+        <a class="ansibleOptionLink" href="#parameter-body" title="Permalink to this option"></a>
 
-- ``drain_node_traffic_anomaly`` — Monitors traffic during node drain operations.
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Dictionary containing the resource details.
+
+      For predefined probes, :literal:`predefined\_probe` is the probe name (e.g. :literal:`bgp\_session`\ ), and additional keys are the schema parameters (\ :literal:`label`\ , :literal:`duration`\ , etc.).
+
+      For custom probes, keys include :literal:`label`\ , :literal:`description`\ , :literal:`disabled`\ , and :literal:`processors`.
+
+      For dashboards, keys include :literal:`label` and :literal:`description`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-id"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__parameter-id:
+
+      .. rst-class:: ansible-option-title
+
+      **id**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-id" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Dictionary containing resource identifiers.
+
+      Always requires :literal:`blueprint` key with the blueprint UUID or label.
+
+      For existing probes, include :literal:`probe` key with probe UUID or label.
+
+      For dashboards, include :literal:`dashboard` key with dashboard UUID or label.
+
+      Name/label resolution is supported for :literal:`blueprint`\ , :literal:`probe`\ , and :literal:`dashboard` keys.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-password"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__parameter-password:
+
+      .. rst-class:: ansible-option-title
+
+      **password**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-password" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The password for authentication.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-state"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__parameter-state:
+
+      .. rst-class:: ansible-option-title
+
+      **state**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-state" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Desired state of the resource.
+
+      :literal:`present` creates or updates the resource.
+
+      :literal:`absent` deletes the resource.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry-default:`"present"` :ansible-option-choices-default-mark:`← (default)`
+      - :ansible-option-choices-entry:`"absent"`
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-type"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__parameter-type:
+
+      .. rst-class:: ansible-option-title
+
+      **type**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-type" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The type of IBA resource to manage.
+
+      :literal:`predefined` instantiates a probe from the Apstra predefined probe catalog.
+
+      :literal:`probe` manages custom (raw) probes directly.
+
+      :literal:`dashboard` manages IBA dashboards.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry-default:`"predefined"` :ansible-option-choices-default-mark:`← (default)`
+      - :ansible-option-choices-entry:`"probe"`
+      - :ansible-option-choices-entry:`"dashboard"`
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-username"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__parameter-username:
+
+      .. rst-class:: ansible-option-title
+
+      **username**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-username" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The username for authentication.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-verify_certificates"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__parameter-verify_certificates:
+
+      .. rst-class:: ansible-option-title
+
+      **verify_certificates**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-verify_certificates" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      If set to false, SSL certificates will not be verified.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`false`
+      - :ansible-option-choices-entry-default:`true` :ansible-option-choices-default-mark:`← (default)`
+
+
+      .. raw:: html
+
+        </div>
+
+
+.. Attributes
+
+
+.. Notes
+
+
+.. Seealso
+
+
+.. Examples
 
 Examples
 --------
 
-Predefined Probes
-~~~~~~~~~~~~~~~~~
-
 .. code-block:: yaml+jinja
+
+    # ── Predefined Probes ───────────────────────────────────────────────
 
     - name: Authenticate to Apstra
       juniper.apstra.authenticate:
         logout: false
       register: auth
 
-    - name: List all available predefined probes
-      juniper.apstra.iba_probes:
-        type: predefined
-        id:
-          blueprint: "my-blueprint"
-        state: present
-        auth_token: "{{ auth.token }}"
-      register: predefined_list
-
-    - name: Create a BGP Session probe
+    - name: Create a BGP Session probe from predefined
       juniper.apstra.iba_probes:
         type: predefined
         id:
@@ -234,18 +472,14 @@ Predefined Probes
         auth_token: "{{ auth.token }}"
       register: bgp_probe
 
-    - name: Create a Bandwidth Utilization probe
+    - name: Create a Device Traffic probe
       juniper.apstra.iba_probes:
         type: predefined
         id:
           blueprint: "my-blueprint"
         body:
-          predefined_probe: bandwidth_utilization
-          label: "Bandwidth Utilization"
-          first_summary_average_period: 120
-          first_summary_total_duration: 3600
-          second_summary_average_period: 3600
-          second_summary_total_duration: 2592000
+          predefined_probe: traffic
+          label: "Device Traffic"
         auth_token: "{{ auth.token }}"
 
     - name: Create a Device System Health probe
@@ -259,6 +493,26 @@ Predefined Probes
           raise_switch_anomaly: true
           raise_server_anomaly: true
           history_duration: 2592000
+        auth_token: "{{ auth.token }}"
+
+    - name: Create an ECMP Imbalance probe (fabric)
+      juniper.apstra.iba_probes:
+        type: predefined
+        id:
+          blueprint: "my-blueprint"
+        body:
+          predefined_probe: fabric_ecmp_imbalance
+          label: "ECMP Imbalance (Fabric Interfaces)"
+        auth_token: "{{ auth.token }}"
+
+    - name: Create a LAG Imbalance probe
+      juniper.apstra.iba_probes:
+        type: predefined
+        id:
+          blueprint: "my-blueprint"
+        body:
+          predefined_probe: lag_imbalance
+          label: "LAG Imbalance"
         auth_token: "{{ auth.token }}"
 
     - name: Create a Control Plane Policing probe
@@ -285,26 +539,6 @@ Predefined Probes
           label: "Device Telemetry Health"
         auth_token: "{{ auth.token }}"
 
-    - name: Create a LAG Imbalance probe
-      juniper.apstra.iba_probes:
-        type: predefined
-        id:
-          blueprint: "my-blueprint"
-        body:
-          predefined_probe: lag_imbalance
-          label: "LAG Imbalance"
-        auth_token: "{{ auth.token }}"
-
-    - name: Create a Fabric ECMP Imbalance probe
-      juniper.apstra.iba_probes:
-        type: predefined
-        id:
-          blueprint: "my-blueprint"
-        body:
-          predefined_probe: fabric_ecmp_imbalance
-          label: "ECMP Imbalance (Fabric)"
-        auth_token: "{{ auth.token }}"
-
     - name: Create an ESI Imbalance probe
       juniper.apstra.iba_probes:
         type: predefined
@@ -325,30 +559,93 @@ Predefined Probes
           label: "MAC Monitor"
         auth_token: "{{ auth.token }}"
 
-Read & Update Probes
-~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: yaml+jinja
-
-    - name: Read a probe by ID
+    - name: Create a Bandwidth Utilization probe
       juniper.apstra.iba_probes:
-        type: probe
+        type: predefined
         id:
           blueprint: "my-blueprint"
-          probe: "{{ bgp_probe.id.probe }}"
-        state: present
+        body:
+          predefined_probe: bandwidth_utilization
+          label: "Bandwidth Utilization"
+          first_summary_average_period: 120
+          first_summary_total_duration: 3600
+          second_summary_average_period: 3600
+          second_summary_total_duration: 2592000
         auth_token: "{{ auth.token }}"
 
-    - name: Read a probe by label (name resolution)
+    - name: Create a Spine Fault Tolerance probe
       juniper.apstra.iba_probes:
-        type: probe
+        type: predefined
         id:
           blueprint: "my-blueprint"
-          probe: "BGP Monitoring"
-        state: present
+        body:
+          predefined_probe: spine_fault_tolerance
+          label: "Spine Fault Tolerance"
         auth_token: "{{ auth.token }}"
 
-    - name: Update a probe description (find by label in body)
+    - name: Create an Optical Transceivers probe
+      juniper.apstra.iba_probes:
+        type: predefined
+        id:
+          blueprint: "my-blueprint"
+        body:
+          predefined_probe: optical_transceivers
+          label: "Optical Transceivers"
+        auth_token: "{{ auth.token }}"
+
+    - name: Create an Interface Flapping probe (fabric)
+      juniper.apstra.iba_probes:
+        type: predefined
+        id:
+          blueprint: "my-blueprint"
+        body:
+          predefined_probe: fabric_interface_flapping
+          label: "Interface Flapping (Fabric)"
+        auth_token: "{{ auth.token }}"
+
+    - name: Create an EVPN Host Flapping probe
+      juniper.apstra.iba_probes:
+        type: predefined
+        id:
+          blueprint: "my-blueprint"
+        body:
+          predefined_probe: evpn_host_flapping
+          label: "EVPN Host Flapping"
+        auth_token: "{{ auth.token }}"
+
+    - name: Create a Packet Discard Percentage probe
+      juniper.apstra.iba_probes:
+        type: predefined
+        id:
+          blueprint: "my-blueprint"
+        body:
+          predefined_probe: packet_discard_percentage
+          label: "Packet Discard Percentage"
+        auth_token: "{{ auth.token }}"
+
+    - name: Create an East-West Traffic probe
+      juniper.apstra.iba_probes:
+        type: predefined
+        id:
+          blueprint: "my-blueprint"
+        body:
+          predefined_probe: eastwest_traffic
+          label: "East-West Traffic"
+        auth_token: "{{ auth.token }}"
+
+    - name: Create an External Routes probe
+      juniper.apstra.iba_probes:
+        type: predefined
+        id:
+          blueprint: "my-blueprint"
+        body:
+          predefined_probe: external_routes
+          label: "External Routes"
+        auth_token: "{{ auth.token }}"
+
+    # ── Update / Delete Probes ──────────────────────────────────────────
+
+    - name: Update a probe's label (by current label lookup)
       juniper.apstra.iba_probes:
         type: probe
         id:
@@ -359,22 +656,6 @@ Read & Update Probes
         state: present
         auth_token: "{{ auth.token }}"
 
-    - name: Disable a probe
-      juniper.apstra.iba_probes:
-        type: probe
-        id:
-          blueprint: "my-blueprint"
-        body:
-          label: "BGP Monitoring"
-          disabled: true
-        state: present
-        auth_token: "{{ auth.token }}"
-
-Delete Probes
-~~~~~~~~~~~~~
-
-.. code-block:: yaml+jinja
-
     - name: Delete a probe by ID
       juniper.apstra.iba_probes:
         type: probe
@@ -384,13 +665,22 @@ Delete Probes
         state: absent
         auth_token: "{{ auth.token }}"
 
-    - name: Delete a probe by label (via id.probe name resolution)
+    - name: Delete a probe by label (via id.probe)
       juniper.apstra.iba_probes:
         type: probe
         id:
           blueprint: "my-blueprint"
           probe: "BGP Monitoring"
         state: absent
+        auth_token: "{{ auth.token }}"
+
+    - name: Read a probe by label (via id.probe)
+      juniper.apstra.iba_probes:
+        type: probe
+        id:
+          blueprint: "my-blueprint"
+          probe: "BGP Monitoring"
+        state: present
         auth_token: "{{ auth.token }}"
 
     - name: Delete a probe by label (via body.label fallback)
@@ -403,10 +693,7 @@ Delete Probes
         state: absent
         auth_token: "{{ auth.token }}"
 
-IBA Dashboards
-~~~~~~~~~~~~~~
-
-.. code-block:: yaml+jinja
+    # ── IBA Dashboards ──────────────────────────────────────────────────
 
     - name: Create an IBA dashboard
       juniper.apstra.iba_probes:
@@ -420,27 +707,7 @@ IBA Dashboards
         auth_token: "{{ auth.token }}"
       register: dash
 
-    - name: Read a dashboard by label (name resolution)
-      juniper.apstra.iba_probes:
-        type: dashboard
-        id:
-          blueprint: "my-blueprint"
-          dashboard: "Fabric Health Dashboard"
-        state: present
-        auth_token: "{{ auth.token }}"
-
-    - name: Update a dashboard description
-      juniper.apstra.iba_probes:
-        type: dashboard
-        id:
-          blueprint: "my-blueprint"
-        body:
-          label: "Fabric Health Dashboard"
-          description: "Updated description"
-        state: present
-        auth_token: "{{ auth.token }}"
-
-    - name: Delete a dashboard by ID
+    - name: Delete an IBA dashboard by ID
       juniper.apstra.iba_probes:
         type: dashboard
         id:
@@ -449,7 +716,7 @@ IBA Dashboards
         state: absent
         auth_token: "{{ auth.token }}"
 
-    - name: Delete a dashboard by label (name resolution)
+    - name: Delete an IBA dashboard by label
       juniper.apstra.iba_probes:
         type: dashboard
         id:
@@ -458,80 +725,350 @@ IBA Dashboards
         state: absent
         auth_token: "{{ auth.token }}"
 
-Name / Label Resolution
-~~~~~~~~~~~~~~~~~~~~~~~
-
-All ID fields (``blueprint``, ``probe``, ``dashboard``) support name/label resolution.
-You can pass either a UUID or a human-readable label, and the module resolves it automatically.
-
-.. code-block:: yaml+jinja
-
-    # Using UUIDs
-    - name: Read probe by UUID
+    - name: Read an IBA dashboard by label
       juniper.apstra.iba_probes:
-        type: probe
+        type: dashboard
         id:
-          blueprint: "54bd9839-275e-4444-8ef2-5093f49e08b7"
-          probe: "99a47423-c172-4006-b55a-da37102f73e4"
+          blueprint: "my-blueprint"
+          dashboard: "Fabric Health Dashboard"
         state: present
         auth_token: "{{ auth.token }}"
 
-    # Using labels (equivalent to above)
-    - name: Read probe by label
-      juniper.apstra.iba_probes:
-        type: probe
-        id:
-          blueprint: "my-blueprint-label"
-          probe: "BGP Monitoring"
-        state: present
-        auth_token: "{{ auth.token }}"
 
-API Endpoints
+
+.. Facts
+
+
+.. Return values
+
+Return Values
 -------------
+Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this module:
 
-The module uses these Apstra REST API endpoints:
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
 
 .. list-table::
   :width: 100%
-  :widths: 10 50 40
+  :widths: auto
   :header-rows: 1
+  :class: longtable ansible-option-table
 
-  * - Method
-    - Endpoint
+  * - Key
     - Description
-  * - ``GET``
-    - ``/api/blueprints/{bp_id}/probes``
-    - List all probes
-  * - ``POST``
-    - ``/api/blueprints/{bp_id}/probes``
-    - Create a custom probe
-  * - ``GET``
-    - ``/api/blueprints/{bp_id}/probes/{probe_id}``
-    - Get a probe
-  * - ``PUT``
-    - ``/api/blueprints/{bp_id}/probes/{probe_id}``
-    - Update a probe
-  * - ``DELETE``
-    - ``/api/blueprints/{bp_id}/probes/{probe_id}``
-    - Delete a probe
-  * - ``GET``
-    - ``/api/blueprints/{bp_id}/iba/predefined-probes``
-    - List predefined probes
-  * - ``POST``
-    - ``/api/blueprints/{bp_id}/iba/predefined-probes/{name}``
-    - Instantiate predefined probe
-  * - ``GET``
-    - ``/api/blueprints/{bp_id}/iba/dashboards``
-    - List dashboards
-  * - ``POST``
-    - ``/api/blueprints/{bp_id}/iba/dashboards``
-    - Create a dashboard
-  * - ``GET``
-    - ``/api/blueprints/{bp_id}/iba/dashboards/{id}``
-    - Get a dashboard
-  * - ``PUT``
-    - ``/api/blueprints/{bp_id}/iba/dashboards/{id}``
-    - Update a dashboard
-  * - ``DELETE``
-    - ``/api/blueprints/{bp_id}/iba/dashboards/{id}``
-    - Delete a dashboard
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-changed"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__return-changed:
+
+      .. rst-class:: ansible-option-title
+
+      **changed**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-changed" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Indicates whether the module has made any changes.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` always
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-changes"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__return-changes:
+
+      .. rst-class:: ansible-option-title
+
+      **changes**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-changes" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Dictionary of updates that were applied.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` on update
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-dashboard"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__return-dashboard:
+
+      .. rst-class:: ansible-option-title
+
+      **dashboard**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-dashboard" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The full dashboard object details.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when type is dashboard with state present
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-id"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__return-id:
+
+      .. rst-class:: ansible-option-title
+
+      **id**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-id" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Dictionary of resource identifiers.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` on create or when found by label
+
+      .. rst-class:: ansible-option-line
+      .. rst-class:: ansible-option-sample
+
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "54bd9839\-275e\-4444\-8ef2\-5093f49e08b7", "probe": "99a47423\-c172\-4006\-b55a\-da37102f73e4"}`
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-msg"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__return-msg:
+
+      .. rst-class:: ansible-option-title
+
+      **msg**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-msg" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The output message that the module generates.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` always
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-predefined_probes"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__return-predefined_probes:
+
+      .. rst-class:: ansible-option-title
+
+      **predefined_probes**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-predefined_probes" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      List of available predefined probe names (when listing).
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when state is present and type is predefined with no body
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-probe"></div>
+
+      .. _ansible_collections.juniper.apstra.iba_probes_module__return-probe:
+
+      .. rst-class:: ansible-option-title
+
+      **probe**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-probe" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The full probe object details.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when type is predefined or probe with state present
+
+
+      .. raw:: html
+
+        </div>
+
+
+
+..  Status (Presently only deprecated)
+
+
+.. Authors
+
+Authors
+~~~~~~~
+
+- Prabhanjan KV (@kvp_jnpr)
+
+
+.. Extra links
+
+Collection links
+~~~~~~~~~~~~~~~~
+
+.. ansible-links::
+
+  - title: "Issue Tracker"
+    url: "https://github.com/Juniper/apstra-ansible-collection/issues"
+    external: true
+  - title: "Homepage"
+    url: "https://www.juniper.net/us/en/products/network-automation/apstra.html"
+    external: true
+  - title: "Repository (Sources)"
+    url: "https://github.com/Juniper/apstra-ansible-collection"
+    external: true
+
+
+.. Parsing errors

@@ -7,14 +7,14 @@
 
 .. Anchors
 
-.. _ansible_collections.juniper.apstra.connectivity_template_assignment_module:
+.. _ansible_collections.juniper.apstra.design_module:
 
 .. Anchors: short name for ansible.builtin
 
 .. Title
 
-juniper.apstra.connectivity_template_assignment module -- Assign or unassign Connectivity Templates to application points
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+juniper.apstra.design module -- Manage Apstra design elements (logical devices, rack types, templates)
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
@@ -26,7 +26,7 @@ juniper.apstra.connectivity_template_assignment module -- Assign or unassign Con
 
     To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
-    To use it in a playbook, specify: :code:`juniper.apstra.connectivity_template_assignment`.
+    To use it in a playbook, specify: :code:`juniper.apstra.design`.
 
 .. version_added
 
@@ -46,11 +46,10 @@ Synopsis
 
 .. Description
 
-- This module assigns or unassigns Connectivity Templates (CTs) to application points (interfaces) within an Apstra blueprint.
-- Application points are identified by their node IDs (interface IDs from the blueprint graph).
-- Uses the :literal:`obj\-policy\-batch\-apply` API for efficient bulk assignment operations.
-- The module is idempotent — it reads the current assignment state and only makes changes when the desired state differs.
-- Use the :literal:`connectivity\_template` module to create CTs before assigning them.
+- Create or ensure existence of Apstra design elements required before blueprint creation.
+- Supports logical devices, rack types, rack\-based templates, and interface maps.
+- Uses the AOS SDK generator functions to build proper API payloads from simplified YAML definitions (same format as aos\_models/).
+- Idempotent — skips creation if the element already exists.
 
 
 .. Aliases
@@ -84,7 +83,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_url"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-api_url:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-api_url:
 
       .. rst-class:: ansible-option-title
 
@@ -118,7 +117,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-auth_token"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-auth_token:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-auth_token:
 
       .. rst-class:: ansible-option-title
 
@@ -152,7 +151,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-body"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-body:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-body:
 
       .. rst-class:: ansible-option-title
 
@@ -164,7 +163,7 @@ Parameters
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary` / :ansible-option-required:`required`
+        :ansible-option-type:`dictionary`
 
       .. raw:: html
 
@@ -174,18 +173,15 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      The assignment payload.
+      The specification dict for the design element.
 
-      Must contain :literal:`application\_point\_ids` list of application\-point references to assign the CT to (when state is present) or unassign from (when state is absent).
+      For logical\_device — must contain :literal:`panels` list.
 
-      Each entry may be:
-      \- A raw blueprint graph node ID string
-      (e.g. :literal:`G31G9dCSVcDS9PoeYg`\ ).
-      \- A colon\-separated shorthand string :literal:`"\<system\_label\>:\<if\_name\>"`
-      (e.g. :literal:`"leaf1:ge\-0/0/3"` or :literal:`"leaf1:ae1"`\ ) that is resolved
-      to the interface node ID via a QE graph query.
-      \- A resolution dict with :literal:`system` and :literal:`if\_name` keys that is
-      resolved to the interface node ID via a QE graph query.
+      For rack\_type — must contain :literal:`leafs` and optionally :literal:`generics`\ , :literal:`access`.
+
+      For template — must contain :literal:`spine`\ , :literal:`racks`\ , and optionally :literal:`overlay\_control\_protocol`\ , :literal:`asn\_allocation\_policy`.
+
+      For interface\_map — must contain :literal:`logical\_device` and :literal:`device\_profile`. Optionally :literal:`dp\_usage` (list of [port\_id, transform\_id] pairs); if omitted, auto\-generated from the device profile's default transformations.
 
 
       .. raw:: html
@@ -197,7 +193,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-id"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-id:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-id:
 
       .. rst-class:: ansible-option-title
 
@@ -219,11 +215,9 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Identifies the blueprint and connectivity template.
+      Identifies the design element.
 
-      Must contain :literal:`blueprint` key with the blueprint ID.
-
-      Must contain either :literal:`ct\_id` (UUID) or :literal:`ct\_name` (label) to identify the Connectivity Template.
+      Must contain :literal:`design\_type` and :literal:`name`.
 
 
       .. raw:: html
@@ -233,21 +227,21 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-id/blueprint"></div>
+        <div class="ansibleOptionAnchor" id="parameter-id/design_type"></div>
 
       .. raw:: latex
 
         \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-id/blueprint:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-id/design_type:
 
       .. rst-class:: ansible-option-title
 
-      **blueprint**
+      **design_type**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-id/blueprint" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-id/design_type" title="Permalink to this option"></a>
 
       .. ansible-option-type-line::
 
@@ -265,9 +259,17 @@ Parameters
 
         <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
 
-      The ID or label of the Apstra blueprint.
+      The type of design element to manage.
 
-      :literal:`blueprint\_id` is accepted as an alias for this key.
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`"logical\_device"`
+      - :ansible-option-choices-entry:`"rack\_type"`
+      - :ansible-option-choices-entry:`"template"`
+      - :ansible-option-choices-entry:`"interface\_map"`
 
 
       .. raw:: html
@@ -277,25 +279,25 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-id/ct_id"></div>
+        <div class="ansibleOptionAnchor" id="parameter-id/name"></div>
 
       .. raw:: latex
 
         \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-id/ct_id:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-id/name:
 
       .. rst-class:: ansible-option-title
 
-      **ct_id**
+      **name**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-id/ct_id" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-id/name" title="Permalink to this option"></a>
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`string`
+        :ansible-option-type:`string` / :ansible-option-required:`required`
 
       .. raw:: html
 
@@ -309,55 +311,7 @@ Parameters
 
         <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
 
-      The UUID or name (label) of the Connectivity Template to assign.
-
-      If a non\-UUID value is supplied it is automatically resolved to a UUID by looking up the CT name in the blueprint.
-
-      Either :literal:`ct\_id` or :literal:`ct\_name` must be provided.
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-id/ct_name"></div>
-
-      .. raw:: latex
-
-        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
-
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-id/ct_name:
-
-      .. rst-class:: ansible-option-title
-
-      **ct_name**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-id/ct_name" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-      .. raw:: latex
-
-        \end{minipage}
-
-    - .. raw:: html
-
-        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
-
-      The name (label) of the Connectivity Template to assign.
-
-      Used to look up the CT when :literal:`ct\_id` is not provided.
+      The name/id of the design element.
 
 
       .. raw:: html
@@ -370,7 +324,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-password"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-password:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-password:
 
       .. rst-class:: ansible-option-title
 
@@ -404,7 +358,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-state"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-state:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-state:
 
       .. rst-class:: ansible-option-title
 
@@ -426,11 +380,13 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Desired state of the CT assignments.
+      Desired state of the design element.
 
-      :literal:`present` assigns the CT to the listed application points.
+      :literal:`present` creates the element if it does not exist.
 
-      :literal:`absent` unassigns the CT from the listed application points.
+      :literal:`absent` deletes the element.
+
+      :literal:`queried` lists elements of the given :literal:`design\_type`. When :literal:`id.name` is provided, returns that single element. When :literal:`id.name` is :literal:`'\*'` or :literal:`'all'`\ , returns all elements of the type.
 
 
       .. rst-class:: ansible-option-line
@@ -439,6 +395,7 @@ Parameters
 
       - :ansible-option-choices-entry-default:`"present"` :ansible-option-choices-default-mark:`← (default)`
       - :ansible-option-choices-entry:`"absent"`
+      - :ansible-option-choices-entry:`"queried"`
 
 
       .. raw:: html
@@ -450,7 +407,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-username"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-username:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-username:
 
       .. rst-class:: ansible-option-title
 
@@ -484,7 +441,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-verify_certificates"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__parameter-verify_certificates:
+      .. _ansible_collections.juniper.apstra.design_module__parameter-verify_certificates:
 
       .. rst-class:: ansible-option-title
 
@@ -538,75 +495,124 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    # ── Assign using colon-shorthand (system:if_name) strings ────────────
-
-    - name: Assign CT using system:if_name shorthand
-      juniper.apstra.connectivity_template_assignment:
+    - name: Create logical device
+      juniper.apstra.design:
+        api_url: "https://apstra:443/api"
+        auth_token: "{{ token }}"
         id:
-          blueprint: "{{ blueprint_id }}"
-          ct_name: "NewVN2"
+          design_type: logical_device
+          name: simple_dc_vjunos_switch_96x1
         body:
-          application_point_ids:
-            - "leaf1:ge-0/0/3"
-            - "leaf1:ae1"
-            - "leaf2:ae1"
-            - "leaf3:ge-0/0/2"
+          panels:
+            - panel1:
+                portgroups:
+                  - portgroup1:
+                      ports: 96
+                      speed: 1
+                      connects_to:
+                        - superspine
+                        - spine
+                        - leaf
+                        - access
+                        - peer
+                        - unused
+                        - generic
         state: present
 
-    # ── Assign by CT ID using raw node IDs ───────────────────────────────
-
-    - name: Assign CT to multiple interfaces (raw node IDs)
-      juniper.apstra.connectivity_template_assignment:
+    - name: Create rack type
+      juniper.apstra.design:
+        api_url: "https://apstra:443/api"
+        auth_token: "{{ token }}"
         id:
-          blueprint: "{{ blueprint_id }}"
-          ct_id: "{{ ct_id }}"
+          design_type: rack_type
+          name: connectorops_vjunos-rack
         body:
-          application_point_ids:
-            - "G31G9dCSVcDS9PoeYg"
-            - "x2LgjvQJTCNdPBQL9A"
+          leafs:
+            - leaf1:
+                label: leaf-1
+                link_per_spine_count: 1
+                link_per_spine_speed: 1
+                logical_device: simple_dc_vjunos_switch_96x1
+                redundancy_protocol: esi
+          generics:
+            - host1:
+                label: host-1
+                logical_device: AOS-2x1-1
+                links:
+                  - link1:
+                      link_speed: 1
+                      target_switch_label: leaf-1
+                      link_per_switch_count: 1
+                      label: host1_leaf1_link
+                      lag_mode: lacp_active
+                      attachment_type: dualAttached
         state: present
 
-    # ── Assign by CT name using human-readable interface refs ─────────────
-
-    - name: Assign BGP-2-SRX CT using system label + interface name
-      juniper.apstra.connectivity_template_assignment:
+    - name: Create template
+      juniper.apstra.design:
+        api_url: "https://apstra:443/api"
+        auth_token: "{{ token }}"
         id:
-          blueprint: "{{ blueprint_id }}"
-          ct_name: "BGP-2-SRX"
+          design_type: template
+          name: connectorops_2spine4leaf
         body:
-          application_point_ids:
-            - system: "leaf1"
-              if_name: "ge-0/0/1"
-            - system: "leaf2"
-              if_name: "ge-0/0/1"
+          spine:
+            logical_device: simple_dc_vjunos_switch_96x1
+            count: 2
+          racks:
+            connectorops_vjunos-rack: 1
+          overlay_control_protocol: evpn
+          asn_allocation_policy: distinct
         state: present
 
-    # ── Mixed refs: raw IDs and human-readable in the same list ───────────
-
-    - name: Assign CT — mixed raw IDs and interface dicts
-      juniper.apstra.connectivity_template_assignment:
+    - name: Delete a design element
+      juniper.apstra.design:
+        api_url: "https://apstra:443/api"
+        auth_token: "{{ token }}"
         id:
-          blueprint: "{{ blueprint_id }}"
-          ct_name: "My-CT"
-        body:
-          application_point_ids:
-            - "G31G9dCSVcDS9PoeYg"
-            - system: "spine1"
-              if_name: "et-0/0/0"
-        state: present
-
-    # ── Unassign CT from interfaces ───────────────────────────────────────
-
-    - name: Unassign CT from interfaces
-      juniper.apstra.connectivity_template_assignment:
-        id:
-          blueprint: "{{ blueprint_id }}"
-          ct_id: "{{ ct_id }}"
-        body:
-          application_point_ids:
-            - system: "leaf1"
-              if_name: "ge-0/0/1"
+          design_type: template
+          name: connectorops_2spine4leaf
         state: absent
+
+    - name: Create interface map (auto-generates port mappings from device profile)
+      juniper.apstra.design:
+        api_url: "https://apstra:443/api"
+        auth_token: "{{ token }}"
+        id:
+          design_type: interface_map
+          name: simple_dc_vjunos_ifmap
+        body:
+          logical_device: simple_dc_vjunos_switch_96x1
+          device_profile: vJunos-switch
+        state: present
+
+    - name: List all interface maps
+      juniper.apstra.design:
+        api_url: "https://apstra:443/api"
+        auth_token: "{{ token }}"
+        id:
+          design_type: interface_map
+          name: all
+        state: queried
+      register: all_imaps
+
+    - name: Use queried interface maps
+      ansible.builtin.debug:
+        msg: "Found {{ all_imaps.design_items | length }} interface maps"
+
+    - name: Query a specific logical device by name
+      juniper.apstra.design:
+        api_url: "https://apstra:443/api"
+        auth_token: "{{ token }}"
+        id:
+          design_type: logical_device
+          name: AOS-7x10-Leaf
+        state: queried
+      register: ld_result
+
+    - name: Show queried logical device
+      ansible.builtin.debug:
+        msg: "Logical device: {{ ld_result.data }}"
 
 
 
@@ -633,49 +639,9 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-applied"></div>
-
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__return-applied:
-
-      .. rst-class:: ansible-option-title
-
-      **applied**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-applied" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      List of interface IDs that were newly assigned.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` when state is present and changes are made
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-changed"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__return-changed:
+      .. _ansible_collections.juniper.apstra.design_module__return-changed:
 
       .. rst-class:: ansible-option-title
 
@@ -697,7 +663,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      Indicates whether the module has made any changes.
+      Whether the element was created or already existed.
 
 
       .. rst-class:: ansible-option-line
@@ -713,17 +679,101 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-msg"></div>
+        <div class="ansibleOptionAnchor" id="return-data"></div>
 
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__return-msg:
+      .. _ansible_collections.juniper.apstra.design_module__return-data:
 
       .. rst-class:: ansible-option-title
 
-      **msg**
+      **data**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#return-msg" title="Permalink to this return value"></a>
+        <a class="ansibleOptionLink" href="#return-data" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The full design element data from the server.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when state is present, absent, or queried with a specific name
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-design_items"></div>
+
+      .. _ansible_collections.juniper.apstra.design_module__return-design_items:
+
+      .. rst-class:: ansible-option-title
+
+      **design_items**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-design_items" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      List of design elements returned by :literal:`state=queried`.
+
+      When querying all (\ :literal:`name=all` or :literal:`name=\*`\ ), contains every element of the given :literal:`design\_type`.
+
+      When querying a specific name, contains a single\-element list.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when state is queried
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-id"></div>
+
+      .. _ansible_collections.juniper.apstra.design_module__return-id:
+
+      .. rst-class:: ansible-option-title
+
+      **id**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-id" title="Permalink to this return value"></a>
 
       .. ansible-option-type-line::
 
@@ -737,52 +787,12 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The output message that the module generates.
+      The ID of the design element.
 
 
       .. rst-class:: ansible-option-line
 
       :ansible-option-returned-bold:`Returned:` always
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-unapplied"></div>
-
-      .. _ansible_collections.juniper.apstra.connectivity_template_assignment_module__return-unapplied:
-
-      .. rst-class:: ansible-option-title
-
-      **unapplied**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-unapplied" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      List of interface IDs that were newly unassigned.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` when state is absent and changes are made
 
 
       .. raw:: html

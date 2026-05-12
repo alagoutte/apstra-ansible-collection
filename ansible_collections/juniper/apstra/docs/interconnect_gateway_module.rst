@@ -14,7 +14,7 @@
 .. Title
 
 juniper.apstra.interconnect_gateway module -- Manage EVPN Interconnect Domains and their Gateways in Apstra blueprints
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
@@ -24,7 +24,7 @@ juniper.apstra.interconnect_gateway module -- Manage EVPN Interconnect Domains a
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
-    To install it, use: :code:`ansible-galaxy collection install juniper.apstra`.
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
     To use it in a playbook, specify: :code:`juniper.apstra.interconnect_gateway`.
 
@@ -47,9 +47,9 @@ Synopsis
 .. Description
 
 - This module manages both EVPN Interconnect Domains and Interconnect Domain Gateways within an Apstra blueprint.
-- Use ``type=domain`` to manage Interconnect Domains (EVPN Interconnect Groups) that group sites for EVPN-based DCI.
-- Use ``type=gateway`` (the default) to manage Interconnect Domain Gateways — remote EVPN gateways linked to an Interconnect Domain.
-- The equivalent Terraform resources are ``apstra_datacenter_interconnect_domain`` and ``apstra_datacenter_interconnect_domain_gateway``.
+- Use :literal:`type=domain` to manage Interconnect Domains (EVPN Interconnect Groups) that group sites for EVPN\-based DCI.
+- Use :literal:`type=gateway` (the default) to manage Interconnect Domain Gateways — remote EVPN gateways linked to an Interconnect Domain.
+- The equivalent Terraform resources are :literal:`apstra\_datacenter\_interconnect\_domain` and :literal:`apstra\_datacenter\_interconnect\_domain\_gateway`.
 
 
 .. Aliases
@@ -108,10 +108,6 @@ Parameters
       The URL used to access the Apstra api.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_API\_URL environment variable"`
-
       .. raw:: html
 
         </div>
@@ -146,10 +142,6 @@ Parameters
       The authentication token to use if already authenticated.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_AUTH\_TOKEN environment variable"`
-
       .. raw:: html
 
         </div>
@@ -183,25 +175,37 @@ Parameters
 
       Dictionary containing the resource details.
 
-      **For type=domain:**
+      For :literal:`type=domain`\ :
 
-      - ``label`` (string) — Domain name (required for create).
-      - ``route_target`` (string) — Interconnect Route Target in ``<asn>:<nn>`` format (required for create).
-      - ``esi_mac`` (string) — Optional per-site ESI MAC address.
-      - ``security_zones`` (dict) — DCI Layer-3 (Type-5) settings keyed by VRF label or ID (auto-resolved). Each value is a dict with ``routing_policy_id`` (label or ID, auto-resolved), ``interconnect_route_target`` (string), and ``enabled_for_l3`` (bool). Optional.
-      - ``virtual_networks`` (dict) — VN connection type settings keyed by virtual network label or ID (auto-resolved). Each value is a dict with ``l2`` (bool), ``l3`` (bool), and ``translation_vni`` (integer). Optional.
+      :literal:`label` (string) \- Domain name (required for create).
 
-      **For type=gateway:**
+      :literal:`route\_target` (string) \- Interconnect Route Target in :literal:`\<asn\>:\<nn\>` format (required for create).
 
-      - ``gw_name`` (string) — Gateway name (required for create).
-      - ``gw_ip`` (string) — Gateway IPv4 address (required for create).
-      - ``gw_asn`` (integer) — Gateway AS number, 1–4294967295 (required for create).
-      - ``local_gw_nodes`` (list) — IDs or labels of leaf switches that peer with this gateway (required for create). System labels are resolved automatically to graph node UUIDs.
-      - ``evpn_interconnect_group_id`` (string) — ID or label of the parent Interconnect Domain (required for create). Domain labels are resolved automatically.
-      - ``ttl`` (integer) — BGP TTL in hops (optional).
-      - ``keepalive_timer`` (integer) — BGP keepalive in seconds (optional).
-      - ``holdtime_timer`` (integer) — BGP hold time in seconds (optional).
-      - ``password`` (string) — BGP session password (optional).
+      :literal:`esi\_mac` (string) \- Optional per\-site ESI MAC address.
+
+      :literal:`security\_zones` (dict) \- DCI Layer\-3 (Type\-5) settings keyed by VRF label or ID (auto\-resolved). Each value is a dict with :literal:`routing\_policy\_id` (label or ID, auto\-resolved), :literal:`interconnect\_route\_target` (string), and :literal:`enabled\_for\_l3` (bool). Optional.
+
+      :literal:`virtual\_networks` (dict) \- VN connection type settings keyed by virtual network label or ID (auto\-resolved). Each value is a dict with :literal:`l2` (bool), :literal:`l3` (bool), and :literal:`translation\_vni` (integer). Optional.
+
+      For :literal:`type=gateway`\ :
+
+      :literal:`gw\_name` (string) \- Gateway name (required for create).
+
+      :literal:`gw\_ip` (string) \- Gateway IPv4 address (required for create).
+
+      :literal:`gw\_asn` (integer) \- Gateway AS number, 1\-4294967295 (required for create).
+
+      :literal:`local\_gw\_nodes` (list) \- IDs or labels of leaf switches that peer with this gateway (required for create).
+
+      :literal:`evpn\_interconnect\_group\_id` (string) \- ID of the parent Interconnect Domain (required for create).
+
+      :literal:`ttl` (integer) \- BGP TTL in hops (optional).
+
+      :literal:`keepalive\_timer` (integer) \- BGP keepalive in seconds (optional).
+
+      :literal:`holdtime\_timer` (integer) \- BGP hold time in seconds (optional).
+
+      :literal:`password` (string) \- BGP session password (optional).
 
 
       .. raw:: html
@@ -237,11 +241,11 @@ Parameters
 
       Dictionary containing the blueprint and resource IDs.
 
-      ``blueprint`` is always required (name or UUID).
+      :literal:`blueprint` is always required.
 
-      **For type=domain:** ``evpn_interconnect_group`` is optional for create (looked up by ``label`` for idempotency), required for explicit update/delete.
+      For :literal:`type=domain`\ : :literal:`evpn\_interconnect\_group` is optional for create (looked up by :literal:`label` for idempotency), required for update/delete.
 
-      **For type=gateway:** ``remote_gateway`` is optional for create (looked up by ``gw_name`` for idempotency), required for explicit update/delete.
+      For :literal:`type=gateway`\ : :literal:`remote\_gateway` is optional for create (looked up by :literal:`gw\_name` for idempotency), required for update/delete.
 
 
       .. raw:: html
@@ -277,10 +281,6 @@ Parameters
 
       The password for authentication.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_PASSWORD environment variable"`
 
       .. raw:: html
 
@@ -357,9 +357,9 @@ Parameters
 
       The type of interconnect resource to manage.
 
-      ``domain`` manages Interconnect Domains (EVPN Interconnect Groups). Body fields are ``label``, ``route_target``, and optional ``esi_mac``.
+      :literal:`domain` manages Interconnect Domains (EVPN Interconnect Groups). Body fields are :literal:`label`\ , :literal:`route\_target`\ , and optional :literal:`esi\_mac`.
 
-      ``gateway`` manages Interconnect Domain Gateways (remote gateways linked to a domain). Body fields are ``gw_name``, ``gw_ip``, ``gw_asn``, ``local_gw_nodes``, and ``evpn_interconnect_group_id``.
+      :literal:`gateway` manages Interconnect Domain Gateways (remote gateways linked to a domain). Body fields are :literal:`gw\_name`\ , :literal:`gw\_ip`\ , :literal:`gw\_asn`\ , :literal:`local\_gw\_nodes`\ , and :literal:`evpn\_interconnect\_group\_id`.
 
 
       .. rst-class:: ansible-option-line
@@ -403,10 +403,6 @@ Parameters
 
       The username for authentication.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_USERNAME environment variable"`
 
       .. raw:: html
 
@@ -460,30 +456,8 @@ Parameters
 
 .. Notes
 
-Notes
------
-
-.. note::
-
-   - Blueprint names are resolved to UUIDs automatically. You can pass either the blueprint label or its UUID in ``id.blueprint``.
-   - For ``type=gateway``, system labels in ``local_gw_nodes`` are resolved to graph node UUIDs automatically.
-   - For ``type=gateway``, the ``evpn_interconnect_group_id`` field accepts either a domain label or its UUID.
-   - Domain lookup by ``label`` and gateway lookup by ``gw_name`` provide create-or-update idempotency without needing to supply explicit IDs.
-
 
 .. Seealso
-
-See Also
---------
-
-.. seealso::
-
-   :ref:`juniper.apstra.routing_policy <ansible_collections.juniper.apstra.routing_policy_module>`
-       Manage routing policies in Apstra.
-   :ref:`juniper.apstra.virtual_network <ansible_collections.juniper.apstra.virtual_network_module>`
-       Manage virtual networks in Apstra.
-   :ref:`juniper.apstra.security_zone <ansible_collections.juniper.apstra.security_zone_module>`
-       Manage security zones in Apstra.
 
 
 .. Examples
@@ -518,8 +492,21 @@ Examples
           route_target: "65500:200"
           esi_mac: "02:00:00:00:00:01"
         state: present
+      register: icd_2
 
-    # Update a domain by label (no ID needed - looked up automatically)
+    # Update a domain by providing its ID
+    - name: Update interconnect domain route_target by ID
+      juniper.apstra.interconnect_gateway:
+        type: domain
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+          evpn_interconnect_group: "{{ icd.id.evpn_interconnect_group }}"
+        body:
+          label: "dci-domain-1"
+          route_target: "65500:101"
+        state: present
+
+    # Update a domain by label (no ID needed — looked up automatically)
     - name: Update interconnect domain by label
       juniper.apstra.interconnect_gateway:
         type: domain
@@ -529,6 +516,15 @@ Examples
           label: "dci-domain-1"
           route_target: "65500:102"
         state: present
+
+    # Delete a domain by explicit ID
+    - name: Delete interconnect domain by ID
+      juniper.apstra.interconnect_gateway:
+        type: domain
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+          evpn_interconnect_group: "{{ icd.id.evpn_interconnect_group }}"
+        state: absent
 
     # Delete a domain by label (no evpn_interconnect_group ID needed)
     - name: Delete interconnect domain by label
@@ -580,8 +576,9 @@ Examples
 
     # ---- Interconnect Domain Gateway (type: gateway) ----
 
-    # Create a gateway using system labels and domain label
-    - name: Create interconnect gateway using labels
+    # Create a gateway — local_gw_nodes accepts system labels OR raw node IDs.
+    # evpn_interconnect_group_id accepts the domain label OR its UUID.
+    - name: Create interconnect gateway using system labels and domain label
       juniper.apstra.interconnect_gateway:
         id:
           blueprint: "my-datacenter-blueprint"
@@ -598,6 +595,38 @@ Examples
           holdtime_timer: 30
         state: present
       register: icgw
+
+    # Create a gateway using raw node IDs and domain UUID
+    - name: Create interconnect gateway using raw IDs
+      juniper.apstra.interconnect_gateway:
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+        body:
+          gw_name: "remote-dc2-gw"
+          gw_ip: "10.1.0.1"
+          gw_asn: 65500
+          evpn_interconnect_group_id: "{{ icd.id.evpn_interconnect_group }}"
+          local_gw_nodes:
+            - "PPbnMs25oIuO8WHldA"
+            - "QCbnMs25oIuO8WHldB"
+          ttl: 2
+        state: present
+      register: icgw
+
+    # Update a gateway by providing its ID
+    - name: Update interconnect gateway by ID
+      juniper.apstra.interconnect_gateway:
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+          remote_gateway: "{{ icgw.id.remote_gateway }}"
+        body:
+          gw_name: "remote-dc2-gw"
+          gw_ip: "10.1.0.2"
+          gw_asn: 65500
+          evpn_interconnect_group_id: "{{ icd.id.evpn_interconnect_group }}"
+          local_gw_nodes:
+            - "border-leaf-1"
+        state: present
 
     # Update a gateway by name lookup (no remote_gateway ID needed)
     - name: Update interconnect gateway by gw_name
@@ -757,11 +786,6 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
       :ansible-option-returned-bold:`Returned:` when type=domain and state=present
 
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"id": "r\_TDcZaG24I1ywU5jw", "interconnect\_esi\_mac": "02:ff:00:00:00:01", "interconnect\_route\_target": "65500:100", "interconnect\_security\_zones": {}, "interconnect\_virtual\_networks": {}, "label": "dci-domain-1", "remote\_gateway\_node\_ids": {}}`
-
 
       .. raw:: html
 
@@ -795,17 +819,12 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The ID dictionary. For type=domain contains ``blueprint`` and ``evpn_interconnect_group``. For type=gateway contains ``blueprint`` and ``remote_gateway``.
+      The ID dictionary. For type=domain contains :literal:`blueprint` and :literal:`evpn\_interconnect\_group`. For type=gateway contains :literal:`blueprint` and :literal:`remote\_gateway`.
 
 
       .. rst-class:: ansible-option-line
 
       :ansible-option-returned-bold:`Returned:` on create, or when object identified by label/gw\_name
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6-1f33-4e11-8d59-6f9c26f16962", "evpn\_interconnect\_group": "r\_TDcZaG24I1ywU5jw"}`
 
 
       .. raw:: html
@@ -887,11 +906,6 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
       :ansible-option-returned-bold:`Returned:` when type=gateway and state=present
 
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"evpn\_interconnect\_group\_id": "r\_TDcZaG24I1ywU5jw", "gw\_asn": 65500, "gw\_ip": "10.1.0.1", "gw\_name": "remote-dc2-gw", "holdtime\_timer": 30, "id": "abc123", "keepalive\_timer": 10, "local\_gw\_nodes": [{"node\_id": "PPbnMs25oIuO8WHldA"}], "ttl": 2}`
-
 
       .. raw:: html
 
@@ -947,8 +961,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 Authors
 ~~~~~~~
 
-- Juniper Networks
-
+- Prabhanjan KV (@kvp_jnpr)
 
 
 .. Extra links
@@ -961,6 +974,12 @@ Collection links
   - title: "Issue Tracker"
     url: "https://github.com/Juniper/apstra-ansible-collection/issues"
     external: true
+  - title: "Homepage"
+    url: "https://www.juniper.net/us/en/products/network-automation/apstra.html"
+    external: true
   - title: "Repository (Sources)"
     url: "https://github.com/Juniper/apstra-ansible-collection"
     external: true
+
+
+.. Parsing errors

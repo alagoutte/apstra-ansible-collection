@@ -19,12 +19,12 @@ juniper.apstra.resource_group module -- Manage resource groups in Apstra
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.5).
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.0.6).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
-    To install it, use: :code:`ansible-galaxy collection install juniper.apstra`.
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
     To use it in a playbook, specify: :code:`juniper.apstra.resource_group`.
 
@@ -105,10 +105,6 @@ Parameters
       The URL used to access the Apstra api.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_API\_URL environment variable"`
-
       .. raw:: html
 
         </div>
@@ -142,10 +138,6 @@ Parameters
 
       The authentication token to use if already authenticated.
 
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_AUTH\_TOKEN environment variable"`
 
       .. raw:: html
 
@@ -255,10 +247,6 @@ Parameters
       The password for authentication.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_PASSWORD environment variable"`
-
       .. raw:: html
 
         </div>
@@ -335,10 +323,6 @@ Parameters
       The username for authentication.
 
 
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`"APSTRA\_USERNAME environment variable"`
-
       .. raw:: html
 
         </div>
@@ -412,6 +396,30 @@ Examples
           pool_ids:
             - "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
             - "77777777-7f37-7e17-7d57-7f9c26f16967"
+        state: present
+
+    # Use pool display names instead of UUIDs — names are resolved automatically
+    - name: Update resource group using pool names
+      juniper.apstra.resource_group:
+        id:
+          blueprint: "my-blueprint"
+          group_type: "asn"
+          group_name: "spine_asns"
+        body:
+          pool_ids:
+            - "vpod-evpn-asn-pool"
+        state: present
+
+    # Use blueprint name instead of UUID
+    - name: Update resource group using blueprint name
+      juniper.apstra.resource_group:
+        id:
+          blueprint: "my-blueprint"
+          group_type: "ip"
+          group_name: "leaf_loopback_ips"
+        body:
+          pool_ids:
+            - "my-ip-pool"
         state: present
 
     - name: Delete a resource group
@@ -601,7 +609,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
       .. rst-class:: ansible-option-line
       .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"name": "sz:s1dQM4lDL8BBfxOsYQ,leaf\_loopback\_ips", "pool\_ids": ["5f2a77f6-1f33-4e11-8d59-6f9c26f16962"], "type": "ip"}`
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"name": "sz:s1dQM4lDL8BBfxOsYQ,leaf\_loopback\_ips", "pool\_ids": ["5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962"], "type": "ip"}`
 
 
       .. raw:: html
@@ -659,7 +667,6 @@ Authors
 ~~~~~~~
 
 - Edwin Jacques (@edwinpjacques)
-
 
 
 .. Extra links
