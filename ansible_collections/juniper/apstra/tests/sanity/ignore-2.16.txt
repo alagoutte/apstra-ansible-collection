@@ -35,6 +35,7 @@ plugins/modules/tag.py validate-modules:missing-gplv3-license
 plugins/modules/upgrade_group.py validate-modules:missing-gplv3-license
 plugins/modules/virtual_infra_manager.py validate-modules:missing-gplv3-license
 plugins/modules/virtual_network.py validate-modules:missing-gplv3-license
+plugins/modules/ztp_config.py validate-modules:missing-gplv3-license
 plugins/modules/ztp_device.py validate-modules:missing-gplv3-license
 plugins/modules/device_management.py validate-modules:missing-gplv3-license
 plugins/modules/ztp_config.py validate-modules:missing-gplv3-license
