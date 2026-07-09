@@ -110,6 +110,8 @@ options:
     type: str
     choices: ["present", "absent", "status", "create_agent", "update_status"]
     default: "present"
+extends_documentation_fragment:
+  - juniper.apstra.ztp_client
 """
 
 EXAMPLES = """
