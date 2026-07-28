@@ -49,14 +49,15 @@
       block:
         - name: List all blueprints
           juniper.apstra.apstra_facts:
-            object_type: blueprints
+            gather_network_facts:
+              - blueprints
             auth_token: "{{ auth.token }}"
           register: all_bps
 
         - name: Select first blueprint
           ansible.builtin.set_fact:
-            blueprint_id: "{{ all_bps.objects[0].id }}"
-          when: all_bps.objects | length > 0
+            blueprint_id: "{{ all_bps.ansible_facts.apstra_facts.blueprints.values() | map(attribute='id') | first }}"
+          when: all_bps.ansible_facts.apstra_facts.blueprints | length > 0
 
     - name: Fail if no blueprint available
       ansible.builtin.fail:
