@@ -158,7 +158,7 @@
       ansible.builtin.set_fact:
         gateway_configs: >-
           {%- set configs = [] -%}
-          {%- set links = cabling_map_response.json.links | default([]) -%}
+          {%- set links = (cabling_map_response.content | from_json).links | default([]) -%}
           {%- for ext_node in external_nodes -%}
             {%- set node_label = ext_node.label -%}
             {%- set node_id = ext_node.id -%}
