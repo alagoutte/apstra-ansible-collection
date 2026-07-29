@@ -1,0 +1,60 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Cleanup Test Blueprints
+#
+# Deletes all blueprints whose label starts with "test_" (created by unit test
+# playbooks).  Run before each test target to remove stale blueprints left by
+# a previous run that failed before its own teardown step.
+#
+# Usage (standalone):
+#   pipenv run ansible-playbook -v \
+#     ansible_collections/juniper/apstra/tests/cleanup_test_blueprints.yml
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Cleanup test blueprints
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  tasks:
+    - name: Authenticate to Apstra
+      juniper.apstra.authenticate:
+        logout: false
+      register: auth
+
+    - name: Gather all blueprints
+      juniper.apstra.apstra_facts:
+        gather_network_facts:
+          - blueprints
+        auth_token: "{{ auth.token }}"
+      register: all_bps
+
+    - name: Find stale test blueprints
+      ansible.builtin.set_fact:
+        stale_blueprints: >-
+          {{ all_bps.ansible_facts.apstra_facts.blueprints
+             | dict2items
+             | selectattr('value.label', 'match', '^test_')
+             | list }}
+
+    - name: Report blueprints to delete
+      ansible.builtin.debug:
+        msg: >-
+          Found {{ stale_blueprints | length }} stale test blueprint(s):
+          {{ stale_blueprints | map(attribute='value.label') | list }}
+
+    - name: Delete stale test blueprints
+      juniper.apstra.blueprint:
+        id:
+          blueprint: "{{ item.key }}"
+        state: absent
+        lock_state: "ignore"
+        auth_token: "{{ auth.token }}"
+      loop: "{{ stale_blueprints }}"
+      loop_control:
+        label: "{{ item.value.label }}"
+      ignore_errors: true
+
+    - name: Cleanup complete
+      ansible.builtin.debug:
+        msg: "Cleanup done — {{ stale_blueprints | length }} blueprint(s) removed."
