@@ -173,30 +173,23 @@
 
     - name: "TEST 3: Revert uncommitted changes"
       block:
-        - name: Create a global property set for blueprint import
+        - name: Create a blueprint-scoped property set (uncommitted change)
           juniper.apstra.property_set:
+            id:
+              blueprint: "{{ blueprint_id }}"
             body:
               label: "test_rollback_ps_{{ test_timestamp }}"
               values:
                 rollback_key: "should_be_reverted"
             auth_token: "{{ auth.token }}"
-          register: revert_ps
+          register: bp_ps_result
 
-        - name: Import property set into blueprint (uncommitted change)
-          juniper.apstra.property_set:
-            id:
-              blueprint: "{{ blueprint_id }}"
-            body:
-              id: "{{ revert_ps.id.property_set }}"
-            auth_token: "{{ auth.token }}"
-          register: ps_import
-
-        - name: Verify import succeeded (change was applied)
+        - name: Verify property set was created (uncommitted change applied)
           ansible.builtin.assert:
             that:
-              - ps_import.changed
+              - bp_ps_result.changed
 
-        - name: Revert blueprint to undo the uncommitted import
+        - name: Revert blueprint to undo the uncommitted change
           juniper.apstra.rollback:
             id:
               blueprint: "{{ blueprint_id }}"
@@ -217,9 +210,8 @@
                 'test': 'TEST 3: Revert uncommitted changes',
                 'status': 'PASSED',
                 'steps': [
-                  'Create global property set',
-                  'Import property set into blueprint (uncommitted change)',
-                  'Revert blueprint to undo the import',
+                  'Create blueprint-scoped property set (uncommitted change)',
+                  'Revert blueprint to undo the change',
                   'Verify revert: changed=true'
                 ]
               }] }}
@@ -235,14 +227,15 @@
               }] }}
 
       always:
-        - name: Cleanup global property set
+        - name: Cleanup blueprint-scoped property set (if revert did not remove it)
           juniper.apstra.property_set:
             id:
-              property_set: "{{ revert_ps.id.property_set }}"
+              blueprint: "{{ blueprint_id }}"
+              property_set: "{{ bp_ps_result.id.property_set }}"
             state: absent
             auth_token: "{{ auth.token }}"
           failed_when: false
-          when: revert_ps.id.property_set is defined
+          when: bp_ps_result is defined and bp_ps_result.id is defined
 
     ################################################################################
     # TEST 4: Error Handling
@@ -257,7 +250,7 @@
             state: rolledback
             auth_token: "{{ auth.token }}"
           register: no_revision_result
-          failed_when: false
+          ignore_errors: true
 
         - name: Verify missing revision_id error
           ansible.builtin.assert:
@@ -274,7 +267,7 @@
             state: rolledback
             auth_token: "{{ auth.token }}"
           register: invalid_revision_result
-          failed_when: false
+          ignore_errors: true
 
         - name: Verify invalid revision_id error
           ansible.builtin.assert:
@@ -288,7 +281,7 @@
             state: listed
             auth_token: "{{ auth.token }}"
           register: bad_bp_result
-          failed_when: false
+          ignore_errors: true
 
         - name: Verify non-existent blueprint error
           ansible.builtin.assert:
