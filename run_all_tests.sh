@@ -27,7 +27,8 @@ COLLECTION_ROOT="ansible_collections/juniper/apstra"
 TESTS_DIR="${COLLECTION_ROOT}/tests"
 VARS_DIR="${TESTS_DIR}/vars"
 INTEGRATION_DIR="${TESTS_DIR}/integration"
-TESTBED_FILE="${TESTBED_FILE:-${COLLECTION_ROOT}/testbed.yml}"
+# Always use absolute path so Ansible can find the file regardless of playbook dir
+TESTBED_FILE="$(realpath "${TESTBED_FILE:-${COLLECTION_ROOT}/testbed.yml}")"
 ANSIBLE_FLAGS="${ANSIBLE_FLAGS:--v}"
 
 RUN_TS=$(date +%Y%m%d_%H%M%S)
