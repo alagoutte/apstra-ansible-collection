@@ -237,7 +237,7 @@ options:
         the SSH fingerprint.  Set C(body.force_accept=true) (default) to
         always run; with C(body.force_accept=false) the operation is a no-op
         when the agent is already in C(connected) state (safe idempotency
-        check).  Accepts single or list id forms - C(id.agent_id),
+        check).  Accepts single or list id forms such as C(id.agent_id),
         C(id.management_ip), C(id.system_name)+C(id.blueprint), or the
         corresponding list variants C(id.agent_ids), C(id.management_ips),
         C(id.system_names).
