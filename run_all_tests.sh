@@ -66,8 +66,12 @@ hdr() { log "${CYAN}${BOLD}$*${NC}"; }
 run_cleanup() {
   local cleanup_log="${LOG_DIR}/_cleanup_$(date +%H%M%S).log"
   echo "  → [cleanup] removing stale test_* blueprints..."
-  pipenv run ansible-playbook -v "${CLEANUP_PB}" \
-    > "${cleanup_log}" 2>&1 || true
+  if ! pipenv run ansible-playbook -v "${CLEANUP_PB}" \
+    > "${cleanup_log}" 2>&1; then
+    log "${RED}  ✗ CLEANUP FAILED — aborting run. See ${cleanup_log}${NC}"
+    cat "${cleanup_log}" | tail -20
+    exit 1
+  fi
 }
 
 # run_target NAME PLAYBOOK [EXTRA_ARGS...]
