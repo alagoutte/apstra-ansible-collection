@@ -63,9 +63,13 @@
             blueprint_id: "{{ (all_bps.ansible_facts.apstra_facts.blueprints | dict2items | first).key }}"
           when: all_bps.ansible_facts.apstra_facts.blueprints | length > 0
 
-    - name: Fail if no blueprint available
-      ansible.builtin.fail:
-        msg: "No blueprint found. Pass -e blueprint_id=<id> or ensure a blueprint exists."
+    - name: Skip all tests if no blueprint available
+      ansible.builtin.debug:
+        msg: "No blueprint found — skipping all blueprint_report tests. Pass -e blueprint_id=<id> or ensure a blueprint exists."
+      when: blueprint_id == ''
+
+    - name: End play if no blueprint available
+      ansible.builtin.meta: end_play
       when: blueprint_id == ''
 
     - name: Display target blueprint

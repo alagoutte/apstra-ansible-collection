@@ -68,6 +68,17 @@
         blueprint_label: >-
           {{ all_bp_facts.ansible_facts.apstra_facts.blueprints
              | dict2items | map(attribute='value.label') | first }}
+      when: >
+        blueprint_label == ''
+        and all_bp_facts.ansible_facts.apstra_facts.blueprints | length > 0
+
+    - name: "Skip all tests — no blueprints available"
+      ansible.builtin.debug:
+        msg: "No blueprints found on this Apstra instance — skipping all os_upgrade tests."
+      when: blueprint_label == ''
+
+    - name: "End play — no blueprints available"
+      ansible.builtin.meta: end_play
       when: blueprint_label == ''
 
     - name: "Show blueprint in use"
@@ -95,7 +106,13 @@
              | dict2items
              | selectattr('value.management_level', 'eq', 'full_control')
              | map(attribute='value.label') | first }}
-      when: device_label == ''
+      when: >
+        device_label == ''
+        and (bp_node_facts.ansible_facts.apstra_facts.blueprints
+             | dict2items | first).value.nodes
+            | dict2items
+            | selectattr('value.management_level', 'eq', 'full_control')
+            | list | length > 0
 
     - name: "Show device in use"
       ansible.builtin.debug:
