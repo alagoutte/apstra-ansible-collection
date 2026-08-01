@@ -7,14 +7,14 @@
 
 .. Anchors
 
-.. _ansible_collections.juniper.apstra.external_gateway_module:
+.. _ansible_collections.juniper.apstra.interface_map_module:
 
 .. Anchors: short name for ansible.builtin
 
 .. Title
 
-juniper.apstra.external_gateway module -- Manage external (remote) EVPN gateways in Apstra blueprints
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+juniper.apstra.interface_map module -- Manage interface map assignments in an Apstra blueprint
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
@@ -26,13 +26,13 @@ juniper.apstra.external_gateway module -- Manage external (remote) EVPN gateways
 
     To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
-    To use it in a playbook, specify: :code:`juniper.apstra.external_gateway`.
+    To use it in a playbook, specify: :code:`juniper.apstra.interface_map`.
 
 .. version_added
 
 .. rst-class:: ansible-version-added
 
-New in juniper.apstra 0.1.0
+New in juniper.apstra 0.2.0
 
 .. contents::
    :local:
@@ -46,10 +46,11 @@ Synopsis
 
 .. Description
 
-- This module allows you to create, update, and delete external (remote) EVPN gateways within an Apstra blueprint.
-- Remote EVPN Gateways are logical functions that can be instantiated on any device with BGP and L2VPN/EVPN AFI/SAFI support.
-- To establish a BGP session with an EVPN gateway, IP connectivity and access to TCP port 179 must be available.
-- This module operates at the blueprint scope and requires a Datacenter (two\_stage\_l3clos) design.
+- This module manages interface map assignments within an Apstra blueprint.
+- Interface maps link blueprint switch nodes to device profiles that define port layout, speed, breakout, and naming.
+- Uses the Apstra interface\-map\-assignments API via the AOS SDK.
+- Provides full idempotency. Existing assignments are fetched and compared before patching.
+- Partial updates are supported. Only the nodes specified in :literal:`assignments` are modified. Other nodes keep their current assignments.
 
 
 .. Aliases
@@ -83,7 +84,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_url"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-api_url:
+      .. _ansible_collections.juniper.apstra.interface_map_module__parameter-api_url:
 
       .. rst-class:: ansible-option-title
 
@@ -117,7 +118,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-auth_token"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-auth_token:
+      .. _ansible_collections.juniper.apstra.interface_map_module__parameter-auth_token:
 
       .. rst-class:: ansible-option-title
 
@@ -151,7 +152,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-body"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-body:
+      .. _ansible_collections.juniper.apstra.interface_map_module__parameter-body:
 
       .. rst-class:: ansible-option-title
 
@@ -163,7 +164,7 @@ Parameters
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary`
+        :ansible-option-type:`dictionary` / :ansible-option-required:`required`
 
       .. raw:: html
 
@@ -173,27 +174,19 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the external gateway details.
+      A dictionary containing the interface map assignments.
 
-      :literal:`gw\_name` (string) \- Gateway name (required for create).
+      Must contain an :literal:`assignments` key mapping blueprint node IDs (or node labels) to interface map IDs (or interface map names).
 
-      :literal:`gw\_ip` (string) \- Gateway IPv4 or IPv6 address (required for create).
+      Node keys that are not UUIDs are resolved by label via a blueprint graph query.
 
-      :literal:`gw\_asn` (integer) \- Gateway AS number, 1\-4294967295 (required for create).
+      Interface map values that are not UUIDs are resolved by label from the design interface\-maps catalog.
 
-      :literal:`local\_gw\_nodes` (list of strings) \- IDs of AOS system nodes (spines, leafs, or superspines) that establish BGP EVPN peering with the remote gateway (required for create).
+      Values may be :literal:`null` or an empty string to clear an assignment.
 
-      :literal:`password` (string) \- BGP session password (optional).
+      Example: :literal:`assignments: {spine1: Juniper\_vJunos\-switch\_vJunos}`
 
-      :literal:`ttl` (integer) \- Time to live in hops (optional).
-
-      :literal:`keepalive\_timer` (integer) \- BGP keepalive timer in seconds (optional).
-
-      :literal:`holdtime\_timer` (integer) \- BGP hold time timer in seconds (optional).
-
-      :literal:`evpn\_route\_types` (string) \- Permitted EVPN route types, :literal:`all` or :literal:`type5\_only` (optional).
-
-      :literal:`evpn\_interconnect\_group\_id` (string) \- Node ID of an EVPN interconnect group (optional).
+      When :literal:`state=speed\_updated` must contain :literal:`system\_name`\ , :literal:`interface\_name`\ , and either :literal:`speed` or :literal:`transform\_id`.
 
 
       .. raw:: html
@@ -205,7 +198,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-id"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-id:
+      .. _ansible_collections.juniper.apstra.interface_map_module__parameter-id:
 
       .. rst-class:: ansible-option-title
 
@@ -227,11 +220,9 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the blueprint and remote gateway IDs.
+      Identifies the blueprint scope.
 
-      :literal:`blueprint` is always required.
-
-      :literal:`remote\_gateway` is optional for create (looked up by :literal:`gw\_name` from :literal:`body` for idempotency), required for update/delete.
+      Must contain :literal:`blueprint` key with the blueprint ID or label.
 
 
       .. raw:: html
@@ -240,10 +231,53 @@ Parameters
 
   * - .. raw:: html
 
+        <div class="ansible-option-indent"></div><div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-id/blueprint"></div>
+
+      .. raw:: latex
+
+        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
+
+      .. _ansible_collections.juniper.apstra.interface_map_module__parameter-id/blueprint:
+
+      .. rst-class:: ansible-option-title
+
+      **blueprint**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-id/blueprint" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string` / :ansible-option-required:`required`
+
+      .. raw:: html
+
+        </div>
+
+      .. raw:: latex
+
+        \end{minipage}
+
+    - .. raw:: html
+
+        <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
+
+      The ID or label of the blueprint in which to manage interface map assignments.
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-password"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-password:
+      .. _ansible_collections.juniper.apstra.interface_map_module__parameter-password:
 
       .. rst-class:: ansible-option-title
 
@@ -265,7 +299,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      The password for authentication.
+      The Apstra password for authentication.
 
 
       .. raw:: html
@@ -277,7 +311,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-state"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-state:
+      .. _ansible_collections.juniper.apstra.interface_map_module__parameter-state:
 
       .. rst-class:: ansible-option-title
 
@@ -299,7 +333,13 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Desired state of the external gateway.
+      Desired state of the interface map assignments.
+
+      :literal:`present` assigns the specified interface maps to nodes.
+
+      :literal:`absent` clears the interface map assignments for the specified nodes (sets them to null).
+
+      :literal:`speed\_updated` changes the speed or transform of a specific interface on a system by selecting the appropriate interface map from the design catalog. Requires :literal:`body.system\_name`\ , :literal:`body.interface\_name`\ , and either :literal:`body.speed` (e.g. :literal:`"25G"`\ , :literal:`"100G"`\ ) or :literal:`body.transform\_id` (integer).
 
 
       .. rst-class:: ansible-option-line
@@ -308,6 +348,7 @@ Parameters
 
       - :ansible-option-choices-entry-default:`"present"` :ansible-option-choices-default-mark:`← (default)`
       - :ansible-option-choices-entry:`"absent"`
+      - :ansible-option-choices-entry:`"speed\_updated"`
 
 
       .. raw:: html
@@ -319,7 +360,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-username"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-username:
+      .. _ansible_collections.juniper.apstra.interface_map_module__parameter-username:
 
       .. rst-class:: ansible-option-title
 
@@ -341,7 +382,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      The username for authentication.
+      The Apstra username for authentication.
 
 
       .. raw:: html
@@ -353,7 +394,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-verify_certificates"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-verify_certificates:
+      .. _ansible_collections.juniper.apstra.interface_map_module__parameter-verify_certificates:
 
       .. rst-class:: ansible-option-title
 
@@ -407,74 +448,72 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    # Create an external gateway
-    - name: Create external gateway
-      juniper.apstra.external_gateway:
-        id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-        body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.1"
-          gw_asn: 65500
-          local_gw_nodes:
-            - "PPbnMs25oIuO8WHldA"
-          ttl: 2
-          keepalive_timer: 10
-          holdtime_timer: 30
-          evpn_route_types: "all"
-        state: present
-      register: ext_gw
+    # ── Assign interface maps to blueprint nodes ──────────────────────
 
-    # Update an external gateway
-    - name: Update external gateway
-      juniper.apstra.external_gateway:
+    - name: Assign interface maps to spine and leaf switches
+      juniper.apstra.interface_map:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-          remote_gateway: "{{ ext_gw.id.remote_gateway }}"
+          blueprint: "{{ blueprint_id }}"
         body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.2"
-          gw_asn: 65501
-          local_gw_nodes:
-            - "PPbnMs25oIuO8WHldA"
-          ttl: 5
+          assignments:
+            "{{ spine_node_id }}": "Juniper_vJunos-switch_vJunos"
+            "{{ leaf_node_id }}": "Juniper_vJunos-switch_vJunos"
         state: present
 
-    # Update by gw_name lookup (idempotent)
-    - name: Update external gateway by name
-      juniper.apstra.external_gateway:
-        id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-        body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.3"
-          gw_asn: 65502
-          local_gw_nodes:
-            - "PPbnMs25oIuO8WHldA"
-        state: present
+    # ── Assign using node labels instead of UUIDs ─────────────────────
 
-    # Use system node labels instead of graph node IDs for local_gw_nodes
-    - name: Create external gateway using node names
-      juniper.apstra.external_gateway:
+    - name: Assign interface maps by node label and IM label
+      juniper.apstra.interface_map:
         id:
           blueprint: "my-blueprint"
         body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.1"
-          gw_asn: 65500
-          local_gw_nodes:
-            - "border-leaf-1"
-            - "border-leaf-2"
-          ttl: 2
+          assignments:
+            spine1: "my_spine_ifmap"
+            leaf1: "my_leaf_ifmap"
         state: present
 
-    # Delete an external gateway
-    - name: Delete external gateway
-      juniper.apstra.external_gateway:
+    # ── Assign different maps per role ────────────────────────────────
+
+    - name: Assign interface maps based on device role
+      juniper.apstra.interface_map:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-          remote_gateway: "{{ ext_gw.id.remote_gateway }}"
+          blueprint: "{{ blueprint_id }}"
+        body:
+          assignments: "{{ im_assignments }}"
+        state: present
+
+    # ── Clear interface map assignments ───────────────────────────────
+
+    - name: Clear interface map for a specific node
+      juniper.apstra.interface_map:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          assignments:
+            "{{ node_id }}": null
         state: absent
+
+    # ── Change interface speed / breakout ────────────────────────────
+
+    - name: Set spine1 et-0/0/0 to 100G
+      juniper.apstra.interface_map:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          system_name: "spine1"
+          interface_name: "et-0/0/0"
+          speed: "100G"
+        state: speed_updated
+
+    - name: Set leaf1 xe-0/0/0 breakout to 4x25G (by transform_id)
+      juniper.apstra.interface_map:
+        id:
+          blueprint: "{{ blueprint_id }}"
+        body:
+          system_name: "leaf1"
+          interface_name: "xe-0/0/0"
+          transform_id: 2
+        state: speed_updated
 
 
 
@@ -501,9 +540,54 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-assignments"></div>
+
+      .. _ansible_collections.juniper.apstra.interface_map_module__return-assignments:
+
+      .. rst-class:: ansible-option-title
+
+      **assignments**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-assignments" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The final interface map assignments after the operation.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` always
+
+      .. rst-class:: ansible-option-line
+      .. rst-class:: ansible-option-sample
+
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"node\_id\_1": "Juniper\_vJunos\-switch\_vJunos", "node\_id\_2": "Arista\_vEOS\-lab\_vEOS\-lab"}`
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-changed"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-changed:
+      .. _ansible_collections.juniper.apstra.interface_map_module__return-changed:
 
       .. rst-class:: ansible-option-title
 
@@ -541,21 +625,21 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-changes"></div>
+        <div class="ansibleOptionAnchor" id="return-interface_map_id"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-changes:
+      .. _ansible_collections.juniper.apstra.interface_map_module__return-interface_map_id:
 
       .. rst-class:: ansible-option-title
 
-      **changes**
+      **interface_map_id**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#return-changes" title="Permalink to this return value"></a>
+        <a class="ansibleOptionLink" href="#return-interface_map_id" title="Permalink to this return value"></a>
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary`
+        :ansible-option-type:`string`
 
       .. raw:: html
 
@@ -565,57 +649,12 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      Dictionary of updates that were applied.
+      The interface map ID assigned after a :literal:`speed\_updated` operation.
 
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-returned-bold:`Returned:` on update
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-id"></div>
-
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-id:
-
-      .. rst-class:: ansible-option-title
-
-      **id**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-id" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The ID dictionary of the external gateway.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` on create, or when object identified by gw\_name
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962", "remote\_gateway": "baV2vCzUKgv2mbYopw"}`
+      :ansible-option-returned-bold:`Returned:` when state is speed\_updated and changed is true
 
 
       .. raw:: html
@@ -628,7 +667,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-msg"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-msg:
+      .. _ansible_collections.juniper.apstra.interface_map_module__return-msg:
 
       .. rst-class:: ansible-option-title
 
@@ -666,21 +705,21 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-remote_gateway"></div>
+        <div class="ansibleOptionAnchor" id="return-system_node_id"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-remote_gateway:
+      .. _ansible_collections.juniper.apstra.interface_map_module__return-system_node_id:
 
       .. rst-class:: ansible-option-title
 
-      **remote_gateway**
+      **system_node_id**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#return-remote_gateway" title="Permalink to this return value"></a>
+        <a class="ansibleOptionLink" href="#return-system_node_id" title="Permalink to this return value"></a>
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary`
+        :ansible-option-type:`string`
 
       .. raw:: html
 
@@ -690,57 +729,12 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The external gateway object details.
+      The blueprint node UUID of the system targeted by :literal:`speed\_updated`.
 
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-returned-bold:`Returned:` on create or update
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"evpn\_route\_types": "all", "gw\_asn": 65500, "gw\_ip": "10.1.0.1", "gw\_name": "dc2\_border\_gw", "holdtime\_timer": 30, "id": "baV2vCzUKgv2mbYopw", "keepalive\_timer": 10, "local\_gw\_nodes": [{"label": "spine1", "node\_id": "PPbnMs25oIuO8WHldA", "role": "spine"}], "ttl": 2}`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-response"></div>
-
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-response:
-
-      .. rst-class:: ansible-option-title
-
-      **response**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-response" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The external gateway object details.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` when state is present and changes are made
+      :ansible-option-returned-bold:`Returned:` when state is speed\_updated
 
 
       .. raw:: html

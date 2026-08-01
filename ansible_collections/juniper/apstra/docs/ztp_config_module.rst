@@ -9,20 +9,22 @@
 
 .. _ansible_collections.juniper.apstra.ztp_config_module:
 
+.. Anchors: short name for ansible.builtin
+
 .. Title
 
-juniper.apstra.ztp_config module -- Manage ZTP VM configuration
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+juniper.apstra.ztp_config module -- Manage ZTP VM configuration (DHCP, firmware, passwords)
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_.
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.1.0).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
-    To install it, use: :code:`ansible-galaxy collection install juniper.apstra`.
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
     To use it in a playbook, specify: :code:`juniper.apstra.ztp_config`.
 
@@ -36,133 +38,671 @@ New in juniper.apstra 1.1.0
    :local:
    :depth: 1
 
+.. Deprecated
+
+
 Synopsis
 --------
 
-- This module manages the Apstra ZTP VM configuration including DHCP host-reservations, subnets, pools, firmware mappings, and passwords.
-- The ZTP VM is a separate appliance from the Apstra server and requires its own connection parameters (``ztp_url``, ``ztp_username``, ``ztp_password``).
-- Three configuration scopes are supported via the ``scope`` parameter: ``dhcp_configurator``, ``ztp_config``, and ``password``.
+.. Description
+
+- This module manages the Apstra ZTP VM configuration including DHCP host\-reservations, subnets, pools, firmware mappings, and passwords.
+- The ZTP VM is a separate appliance from the Apstra server and requires its own connection parameters (\ :literal:`ztp\_url`\ , :literal:`ztp\_username`\ , :literal:`ztp\_password`\ ).
+- Two configuration scopes are supported via the :literal:`scope` parameter.
+- :literal:`dhcp\_configurator` manages DHCP subnets, pools, host\-reservations, and global DHCP options via the :literal:`/api/ztp/config/dhcp/configurator` endpoint.
+- :literal:`ztp\_config` manages firmware mappings, default passwords, and ZTP workflow settings via the :literal:`/api/ztp/config/ztpjson` endpoint.
+- :literal:`password` changes the ZTP web UI admin password via :literal:`/api/ztp/aaa/change\-password`.
 - The module is idempotent — it reads the current configuration, compares it with the desired state, and only applies changes when differences exist.
+
+
+.. Aliases
+
+
+.. Requirements
+
+
+
+
+
+
+.. Options
 
 Parameters
 ----------
 
-.. raw:: html
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
 
-  <table  border=0 cellpadding=0 class="documentation-table">
-      <tr>
-          <th>Parameter</th>
-          <th>Choices/<font color="blue">Defaults</font></th>
-          <th>Description</th>
-      </tr>
-      <tr>
-          <td><b>ztp_url</b> (string)</td>
-          <td></td>
-          <td>Base URL of the ZTP VM (e.g., <code>https://10.204.22.128</code>). Can also be set via the <code>ZTP_URL</code> environment variable.</td>
-      </tr>
-      <tr>
-          <td><b>ztp_username</b> (string)</td>
-          <td></td>
-          <td>Username for ZTP VM authentication. Can also be set via the <code>ZTP_USERNAME</code> environment variable.</td>
-      </tr>
-      <tr>
-          <td><b>ztp_password</b> (string)</td>
-          <td></td>
-          <td>Password for ZTP VM authentication. Can also be set via the <code>ZTP_PASSWORD</code> environment variable.</td>
-      </tr>
-      <tr>
-          <td><b>ztp_auth_token</b> (string)</td>
-          <td></td>
-          <td>Pre-existing auth token for the ZTP VM. Can also be set via the <code>ZTP_AUTH_TOKEN</code> environment variable.</td>
-      </tr>
-      <tr>
-          <td><b>ztp_verify_certificates</b> (boolean)</td>
-          <td><font color="blue">false</font></td>
-          <td>Whether to verify SSL certificates when connecting to the ZTP VM.</td>
-      </tr>
-      <tr>
-          <td><b>scope</b> (string) / <em>required</em></td>
-          <td><ul><li>dhcp_configurator</li><li>ztp_config</li><li>password</li></ul></td>
-          <td>The configuration scope to manage. <code>dhcp_configurator</code> manages DHCP subnets, pools, host-reservations, and DHCP options. <code>ztp_config</code> manages firmware mappings, default passwords, and ZTP workflow settings. <code>password</code> changes the ZTP web UI admin password.</td>
-      </tr>
-      <tr>
-          <td><b>state</b> (string)</td>
-          <td><ul><li><font color="blue"><b>present</b></font></li><li>absent</li><li>query</li></ul></td>
-          <td>Desired state. <code>present</code> creates or updates configuration. <code>absent</code> removes specific items (dhcp_configurator only). <code>query</code> retrieves the current configuration.</td>
-      </tr>
-      <tr>
-          <td><b>subnets</b> (list)</td>
-          <td></td>
-          <td>List of subnet definitions for DHCP. Each subnet includes <code>subnet</code> (CIDR), <code>router</code> (gateway IP), <code>pools</code> (IP ranges), and optional <code>host-reservations</code>.</td>
-      </tr>
-      <tr>
-          <td><b>host_reservations</b> (list)</td>
-          <td></td>
-          <td>List of MAC-to-IP host reservations. Each entry: <code>hw-address</code>, <code>ip-address</code>, optional <code>hostname</code>, optional <code>subnet</code> to target a specific subnet, and optional <code>pool-range-start</code>/<code>pool-range-end</code> to target a specific pool. Selector keys are resolved by the module and are not sent to the API.</td>
-      </tr>
-      <tr>
-          <td><b>global_host_reservations</b> (list)</td>
-          <td></td>
-          <td>List of global (outside-subnet) host reservations. Same format as <code>host_reservations</code>.</td>
-      </tr>
-      <tr>
-          <td><b>options</b> (dict)</td>
-          <td></td>
-          <td>DHCP options: <code>domain-name</code>, <code>domain-search</code>, <code>domain-name-servers</code> (list), <code>tftp-server-name</code>.</td>
-      </tr>
-      <tr>
-          <td><b>reservation_mode_default</b> (list)</td>
-          <td></td>
-          <td>Default DHCP reservation mode: <code>all</code>, <code>global</code>, <code>out-of-pool</code>, <code>disabled</code>.</td>
-      </tr>
-      <tr>
-          <td><b>firmware</b> (dict)</td>
-          <td></td>
-          <td>ZTP JSON configuration keyed by platform (<code>defaults</code>, <code>junos</code>, <code>nxos</code>, <code>eos</code>, <code>junos-evo</code>). Used with <code>scope=ztp_config</code>.</td>
-      </tr>
-      <tr>
-          <td><b>old_password</b> (string)</td>
-          <td></td>
-          <td>Current ZTP admin password. Required for <code>scope=password</code>.</td>
-      </tr>
-      <tr>
-          <td><b>new_password</b> (string)</td>
-          <td></td>
-          <td>New ZTP admin password. Required for <code>scope=password</code>.</td>
-      </tr>
-  </table>
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+  :class: longtable ansible-option-table
 
-Notes
------
+  * - Parameter
+    - Comments
 
-.. note::
-   - The ZTP VM is a separate appliance from the Apstra server. Connection parameters (``ztp_url``, ``ztp_username``, ``ztp_password``) are distinct from Apstra server parameters.
-   - Environment variables ``ZTP_URL``, ``ZTP_USERNAME``, ``ZTP_PASSWORD``, ``ZTP_AUTH_TOKEN``, and ``ZTP_VERIFY_CERTIFICATES`` can be used instead of module parameters.
-   - DHCP configuration changes via the configurator endpoint automatically restart the DHCP service.
-   - The ``state=absent`` option is only supported for ``scope=dhcp_configurator`` (to remove host-reservations or subnets).
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-firmware"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-firmware:
+
+      .. rst-class:: ansible-option-title
+
+      **firmware**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-firmware" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Firmware/ZTP configuration data (the full ZTP JSON config dict).
+
+      This is the content of the ZTP JSON configuration, keyed by platform (e.g., :literal:`defaults`\ , :literal:`junos`\ , :literal:`nxos`\ , :literal:`eos`\ ).
+
+      Used with :literal:`scope=ztp\_config`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-global_host_reservations"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-global_host_reservations:
+
+      .. rst-class:: ansible-option-title
+
+      **global_host_reservations**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-global_host_reservations" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      List of global (outside\-subnet) host reservations.
+
+      Same format as :literal:`host\_reservations`.
+
+      Used with :literal:`scope=dhcp\_configurator`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-host_reservations"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-host_reservations:
+
+      .. rst-class:: ansible-option-title
+
+      **host_reservations**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-host_reservations" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      List of MAC\-to\-IP host reservations for DHCP.
+
+      Each entry must include :literal:`hw\-address` (MAC address) and :literal:`ip\-address` (IP to assign).
+
+      Optional :literal:`hostname` for the reservation.
+
+      Optional :literal:`subnet` to target a specific existing subnet instead of using the first configured subnet.
+
+      Optional :literal:`pool\-range\-start` and :literal:`pool\-range\-end` to target a specific pool within the selected subnet. These selector keys are used only by the module and are not sent to the ZTP API.
+
+      Used with :literal:`scope=dhcp\_configurator`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-new_password"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-new_password:
+
+      .. rst-class:: ansible-option-title
+
+      **new_password**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-new_password" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      New ZTP web UI password (required for :literal:`scope=password`\ ).
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-old_password"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-old_password:
+
+      .. rst-class:: ansible-option-title
+
+      **old_password**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-old_password" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Current ZTP web UI password (required for :literal:`scope=password`\ ).
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-options"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-options:
+
+      .. rst-class:: ansible-option-title
+
+      **options**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-options" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      DHCP options to set globally.
+
+      Supported keys include :literal:`domain\-name`\ , :literal:`domain\-search`\ , :literal:`domain\-name\-servers` (list of IPs), :literal:`tftp\-server\-name`.
+
+      Used with :literal:`scope=dhcp\_configurator`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-reservation_mode_default"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-reservation_mode_default:
+
+      .. rst-class:: ansible-option-title
+
+      **reservation_mode_default**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-reservation_mode_default" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Default reservation mode for DHCP.
+
+      Valid values are :literal:`all`\ , :literal:`global`\ , :literal:`out\-of\-pool`\ , :literal:`disabled`.
+
+      Used with :literal:`scope=dhcp\_configurator`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-scope"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-scope:
+
+      .. rst-class:: ansible-option-title
+
+      **scope**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-scope" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string` / :ansible-option-required:`required`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The configuration scope to manage.
+
+      :literal:`dhcp\_configurator` — manage DHCP subnets, pools, host\-reservations, and DHCP options.
+
+      :literal:`ztp\_config` — manage firmware mappings, default passwords, and ZTP workflow settings.
+
+      :literal:`password` — change the ZTP web UI admin password.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`"dhcp\_configurator"`
+      - :ansible-option-choices-entry:`"ztp\_config"`
+      - :ansible-option-choices-entry:`"password"`
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-state"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-state:
+
+      .. rst-class:: ansible-option-title
+
+      **state**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-state" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Desired state of the configuration.
+
+      :literal:`present` — create or update the configuration to match the desired state.
+
+      :literal:`absent` — remove specific items (host\-reservations, subnets). Only applicable for :literal:`dhcp\_configurator` scope.
+
+      :literal:`query` — retrieve the current configuration without making changes.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry-default:`"present"` :ansible-option-choices-default-mark:`← (default)`
+      - :ansible-option-choices-entry:`"absent"`
+      - :ansible-option-choices-entry:`"query"`
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-subnets"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-subnets:
+
+      .. rst-class:: ansible-option-title
+
+      **subnets**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-subnets" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      List of subnet definitions for DHCP configuration.
+
+      Each subnet must include :literal:`subnet` (CIDR notation), :literal:`router` (gateway IP), and :literal:`pools` (list of IP ranges).
+
+      Used with :literal:`scope=dhcp\_configurator`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-ztp_auth_token"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-ztp_auth_token:
+
+      .. rst-class:: ansible-option-title
+
+      **ztp_auth_token**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-ztp_auth_token" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Pre\-existing auth token for the ZTP VM.
+
+      Can also be set via the :literal:`ZTP\_AUTH\_TOKEN` environment variable.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-ztp_password"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-ztp_password:
+
+      .. rst-class:: ansible-option-title
+
+      **ztp_password**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-ztp_password" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Password for ZTP VM authentication.
+
+      Can also be set via the :literal:`ZTP\_PASSWORD` environment variable.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-ztp_url"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-ztp_url:
+
+      .. rst-class:: ansible-option-title
+
+      **ztp_url**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-ztp_url" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Base URL of the ZTP VM (e.g., :literal:`https://10.204.22.128`\ ).
+
+      Required because the ZTP VM is typically a separate appliance from the Apstra server.
+
+      Can also be set via the :literal:`ZTP\_URL` environment variable.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-ztp_username"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-ztp_username:
+
+      .. rst-class:: ansible-option-title
+
+      **ztp_username**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-ztp_username" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Username for ZTP VM authentication.
+
+      Can also be set via the :literal:`ZTP\_USERNAME` environment variable.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-ztp_verify_certificates"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__parameter-ztp_verify_certificates:
+
+      .. rst-class:: ansible-option-title
+
+      **ztp_verify_certificates**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-ztp_verify_certificates" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Whether to verify SSL certificates when connecting to the ZTP VM.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`false`
+      - :ansible-option-choices-entry-default:`true` :ansible-option-choices-default-mark:`← (default)`
+
+
+      .. raw:: html
+
+        </div>
+
+
+.. Attributes
+
+
+.. Notes
+
+
+.. Seealso
+
+
+.. Examples
 
 Examples
 --------
 
 .. code-block:: yaml+jinja
 
-    # =========================================================================
+    # =============================================================================
     # DHCP CONFIGURATOR SCOPE — Query, Update, Reservations
-    # =========================================================================
+    # =============================================================================
 
-    # Query current DHCP configuration
-    - name: Get DHCP config
+    # Query current DHCP configurator state
+    - name: Get current DHCP configuration
       juniper.apstra.ztp_config:
-        ztp_url: "https://192.168.50.2"
-        ztp_username: "admin"
-        ztp_password: "Apstramarvis@123"
-        ztp_verify_certificates: false
         scope: dhcp_configurator
         state: query
       register: dhcp_config
 
+    - name: Show DHCP config
+      ansible.builtin.debug:
+        var: dhcp_config.config
+
     # Configure DHCP subnets, pools, options, and host-reservations
-    # Shows all available DHCP options
+    # This example shows all available DHCP options
     - name: Configure DHCP with all options
       juniper.apstra.ztp_config:
         scope: dhcp_configurator
@@ -191,7 +731,6 @@ Examples
               - "all"
 
     # Configure multiple DHCP subnets with separate pools
-    # New subnets are appended; existing unrelated subnets are preserved.
     - name: Configure multiple subnets
       juniper.apstra.ztp_config:
         scope: dhcp_configurator
@@ -228,9 +767,9 @@ Examples
         state: present
         host_reservations:
           - subnet: "10.0.0.0/24"
-            hw-address: "aa:bb:cc:dd:ee:04"
+          - hw-address: "aa:bb:cc:dd:ee:03"
             ip-address: "10.0.0.25"
-            hostname: "switch4"
+            hostname: "switch3-alt"
 
     # Add global host reservations (outside any subnet)
     - name: Add global host reservation
@@ -267,9 +806,9 @@ Examples
         subnets:
           - subnet: "10.0.0.0/24"
 
-    # =========================================================================
+    # =============================================================================
     # ZTP CONFIG SCOPE — Query, Update firmware/password/agent settings
-    # =========================================================================
+    # =============================================================================
 
     # Query current ZTP JSON config
     - name: Get ZTP firmware config
@@ -278,8 +817,12 @@ Examples
         state: query
       register: ztp_fw
 
+    - name: Show ZTP config
+      ansible.builtin.debug:
+        var: ztp_fw.config
+
     # Configure complete ZTP JSON with all platform blocks
-    # This manages the full ztp.json used by the ZTP VM for provisioning
+    # This manages the full ztp.json used by the ZTP VM for device provisioning
     - name: Configure complete ZTP JSON
       juniper.apstra.ztp_config:
         scope: ztp_config
@@ -358,51 +901,227 @@ Examples
             junos-versions:
               - "25.4R1.12"
 
-    # =========================================================================
+    # =============================================================================
     # PASSWORD SCOPE — Change ZTP web UI admin password
-    # =========================================================================
+    # =============================================================================
 
-    # Change ZTP admin password
-    - name: Change password
+    # Change ZTP web UI password
+    - name: Change ZTP admin password
       juniper.apstra.ztp_config:
         scope: password
-        old_password: "OldPass@123"
-        new_password: "NewPass@456"
+        old_password: "{{ current_ztp_password }}"
+        new_password: "{{ new_ztp_password }}"
+
+
+
+.. Facts
+
+
+.. Return values
 
 Return Values
 -------------
+Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this module:
 
-.. raw:: html
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
 
-  <table border=0 cellpadding=0 class="documentation-table">
-      <tr>
-          <th>Key</th>
-          <th>Returned</th>
-          <th>Description</th>
-      </tr>
-      <tr>
-          <td><b>changed</b> (boolean)</td>
-          <td>always</td>
-          <td>Whether any changes were made.</td>
-      </tr>
-      <tr>
-          <td><b>config</b> (dict)</td>
-          <td>when scope is dhcp_configurator or ztp_config</td>
-          <td>The current or resulting configuration.</td>
-      </tr>
-      <tr>
-          <td><b>changes</b> (dict)</td>
-          <td>when changes were made</td>
-          <td>Summary of changes applied.</td>
-      </tr>
-      <tr>
-          <td><b>msg</b> (string)</td>
-          <td>always</td>
-          <td>Human-readable message describing the outcome.</td>
-      </tr>
-  </table>
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+  :class: longtable ansible-option-table
+
+  * - Key
+    - Description
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-changed"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__return-changed:
+
+      .. rst-class:: ansible-option-title
+
+      **changed**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-changed" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Whether any changes were made.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` always
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-changes"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__return-changes:
+
+      .. rst-class:: ansible-option-title
+
+      **changes**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-changes" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Summary of changes applied.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when changes were made
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-config"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__return-config:
+
+      .. rst-class:: ansible-option-title
+
+      **config**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-config" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The current or resulting configuration.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when scope is dhcp\_configurator or ztp\_config
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-msg"></div>
+
+      .. _ansible_collections.juniper.apstra.ztp_config_module__return-msg:
+
+      .. rst-class:: ansible-option-title
+
+      **msg**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-msg" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Human\-readable message describing the outcome.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` always
+
+
+      .. raw:: html
+
+        </div>
+
+
+
+..  Status (Presently only deprecated)
+
+
+.. Authors
 
 Authors
 ~~~~~~~
 
-- Prabhanjan KV (@kvp_jnpr)
+- Prabhanjan KV (@kvp-hpe)
+
+
+.. Extra links
+
+Collection links
+~~~~~~~~~~~~~~~~
+
+.. ansible-links::
+
+  - title: "Issue Tracker"
+    url: "https://github.com/Juniper/apstra-ansible-collection/issues"
+    external: true
+  - title: "Homepage"
+    url: "https://www.juniper.net/us/en/products/network-automation/apstra.html"
+    external: true
+  - title: "Repository (Sources)"
+    url: "https://github.com/Juniper/apstra-ansible-collection"
+    external: true
+
+
+.. Parsing errors

@@ -7,14 +7,14 @@
 
 .. Anchors
 
-.. _ansible_collections.juniper.apstra.external_gateway_module:
+.. _ansible_collections.juniper.apstra.aaa_server_module:
 
 .. Anchors: short name for ansible.builtin
 
 .. Title
 
-juniper.apstra.external_gateway module -- Manage external (remote) EVPN gateways in Apstra blueprints
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+juniper.apstra.aaa_server module -- Manage AAA (RADIUS) servers in an Apstra blueprint
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
@@ -26,13 +26,13 @@ juniper.apstra.external_gateway module -- Manage external (remote) EVPN gateways
 
     To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
-    To use it in a playbook, specify: :code:`juniper.apstra.external_gateway`.
+    To use it in a playbook, specify: :code:`juniper.apstra.aaa_server`.
 
 .. version_added
 
 .. rst-class:: ansible-version-added
 
-New in juniper.apstra 0.1.0
+New in juniper.apstra 1.1.0
 
 .. contents::
    :local:
@@ -46,10 +46,10 @@ Synopsis
 
 .. Description
 
-- This module allows you to create, update, and delete external (remote) EVPN gateways within an Apstra blueprint.
-- Remote EVPN Gateways are logical functions that can be instantiated on any device with BGP and L2VPN/EVPN AFI/SAFI support.
-- To establish a BGP session with an EVPN gateway, IP connectivity and access to TCP port 179 must be available.
-- This module operates at the blueprint scope and requires a Datacenter (two\_stage\_l3clos) design.
+- This module allows you to create, update, delete, and list AAA servers within an Apstra blueprint.
+- AAA servers are used for 802.1x port\-based authentication (RADIUS) and RADIUS Change of Authorization (CoA) configuration applied across the fabric.
+- The Apstra blueprint AAA server API currently supports RADIUS server types only (\ :literal:`radius\_dot1x` and :literal:`radius\_coa`\ ). TACACS is not yet supported by the Apstra API; AAA configuration that requires TACACS should continue to use configlet templates.
+- The Apstra SDK does not expose a blueprint AAA server client, so this module communicates with the :literal:`/api/blueprints/{id}/aaa\-servers` endpoint directly.
 
 
 .. Aliases
@@ -83,7 +83,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_url"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-api_url:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__parameter-api_url:
 
       .. rst-class:: ansible-option-title
 
@@ -117,7 +117,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-auth_token"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-auth_token:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__parameter-auth_token:
 
       .. rst-class:: ansible-option-title
 
@@ -151,7 +151,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-body"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-body:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__parameter-body:
 
       .. rst-class:: ansible-option-title
 
@@ -173,27 +173,21 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the external gateway details.
+      Dictionary containing the AAA server object details.
 
-      :literal:`gw\_name` (string) \- Gateway name (required for create).
+      Required keys for create are :literal:`label`\ , :literal:`hostname`\ , :literal:`key` and :literal:`server\_type`.
 
-      :literal:`gw\_ip` (string) \- Gateway IPv4 or IPv6 address (required for create).
+      :literal:`label` \- unique name for the AAA server.
 
-      :literal:`gw\_asn` (integer) \- Gateway AS number, 1\-4294967295 (required for create).
+      :literal:`hostname` \- the server IP address or DNS name.
 
-      :literal:`local\_gw\_nodes` (list of strings) \- IDs of AOS system nodes (spines, leafs, or superspines) that establish BGP EVPN peering with the remote gateway (required for create).
+      :literal:`key` \- the encryption key / shared secret used by the AAA server. This value is sensitive, is never returned by the Apstra API, and is masked in module output.
 
-      :literal:`password` (string) \- BGP session password (optional).
+      :literal:`server\_type` \- one of :literal:`radius\_dot1x` (802.1x RADIUS servers) or :literal:`radius\_coa` (RADIUS Dynamic Authorization / Change of Authorization servers).
 
-      :literal:`ttl` (integer) \- Time to live in hops (optional).
+      :literal:`auth\_port` \- (optional) authentication port. Defaults are chosen by Apstra (1812 for :literal:`radius\_dot1x`\ , 3799 for :literal:`radius\_coa`\ ). For :literal:`radius\_coa` the port can only be 3799.
 
-      :literal:`keepalive\_timer` (integer) \- BGP keepalive timer in seconds (optional).
-
-      :literal:`holdtime\_timer` (integer) \- BGP hold time timer in seconds (optional).
-
-      :literal:`evpn\_route\_types` (string) \- Permitted EVPN route types, :literal:`all` or :literal:`type5\_only` (optional).
-
-      :literal:`evpn\_interconnect\_group\_id` (string) \- Node ID of an EVPN interconnect group (optional).
+      :literal:`acct\_port` \- (optional) accounting port. For :literal:`radius\_dot1x` this defaults to 1813. Set to :literal:`null` to disable accounting. Not applicable to :literal:`radius\_coa`.
 
 
       .. raw:: html
@@ -205,7 +199,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-id"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-id:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__parameter-id:
 
       .. rst-class:: ansible-option-title
 
@@ -227,11 +221,11 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the blueprint and remote gateway IDs.
+      Dictionary containing the blueprint and AAA server IDs.
 
-      :literal:`blueprint` is always required.
+      The :literal:`blueprint` key may be a blueprint UUID or label.
 
-      :literal:`remote\_gateway` is optional for create (looked up by :literal:`gw\_name` from :literal:`body` for idempotency), required for update/delete.
+      The :literal:`aaa\_server` key is the AAA server ID and is only required when targeting an existing server directly (otherwise the server is located by its :literal:`label`\ ).
 
 
       .. raw:: html
@@ -243,7 +237,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-password"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-password:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__parameter-password:
 
       .. rst-class:: ansible-option-title
 
@@ -277,7 +271,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-state"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-state:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__parameter-state:
 
       .. rst-class:: ansible-option-title
 
@@ -299,7 +293,9 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Desired state of the external gateway.
+      Desired state of the AAA server.
+
+      Use :literal:`query` to enumerate all AAA servers in the blueprint.
 
 
       .. rst-class:: ansible-option-line
@@ -308,6 +304,7 @@ Parameters
 
       - :ansible-option-choices-entry-default:`"present"` :ansible-option-choices-default-mark:`← (default)`
       - :ansible-option-choices-entry:`"absent"`
+      - :ansible-option-choices-entry:`"query"`
 
 
       .. raw:: html
@@ -319,7 +316,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-username"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-username:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__parameter-username:
 
       .. rst-class:: ansible-option-title
 
@@ -353,7 +350,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-verify_certificates"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-verify_certificates:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__parameter-verify_certificates:
 
       .. rst-class:: ansible-option-title
 
@@ -407,73 +404,67 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    # Create an external gateway
-    - name: Create external gateway
-      juniper.apstra.external_gateway:
+    - name: Create a RADIUS 802.1x AAA server
+      juniper.apstra.aaa_server:
         id:
           blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
         body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.1"
-          gw_asn: 65500
-          local_gw_nodes:
-            - "PPbnMs25oIuO8WHldA"
-          ttl: 2
-          keepalive_timer: 10
-          holdtime_timer: 30
-          evpn_route_types: "all"
-        state: present
-      register: ext_gw
-
-    # Update an external gateway
-    - name: Update external gateway
-      juniper.apstra.external_gateway:
-        id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-          remote_gateway: "{{ ext_gw.id.remote_gateway }}"
-        body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.2"
-          gw_asn: 65501
-          local_gw_nodes:
-            - "PPbnMs25oIuO8WHldA"
-          ttl: 5
+          label: "radius-1"
+          hostname: "10.1.1.10"
+          key: "{{ vault_radius_secret }}"
+          server_type: "radius_dot1x"
+          auth_port: 1812
+          acct_port: 1813
         state: present
 
-    # Update by gw_name lookup (idempotent)
-    - name: Update external gateway by name
-      juniper.apstra.external_gateway:
-        id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-        body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.3"
-          gw_asn: 65502
-          local_gw_nodes:
-            - "PPbnMs25oIuO8WHldA"
-        state: present
-
-    # Use system node labels instead of graph node IDs for local_gw_nodes
-    - name: Create external gateway using node names
-      juniper.apstra.external_gateway:
+    - name: Create a RADIUS Change of Authorization server
+      juniper.apstra.aaa_server:
         id:
           blueprint: "my-blueprint"
         body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.1"
-          gw_asn: 65500
-          local_gw_nodes:
-            - "border-leaf-1"
-            - "border-leaf-2"
-          ttl: 2
+          label: "radius-coa-1"
+          hostname: "10.1.1.20"
+          key: "{{ vault_radius_secret }}"
+          server_type: "radius_coa"
         state: present
 
-    # Delete an external gateway
-    - name: Delete external gateway
-      juniper.apstra.external_gateway:
+    - name: Update an AAA server's hostname (located by label)
+      juniper.apstra.aaa_server:
         id:
           blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-          remote_gateway: "{{ ext_gw.id.remote_gateway }}"
+        body:
+          label: "radius-1"
+          hostname: "10.1.1.11"
+        state: present
+
+    - name: Update an AAA server by ID
+      juniper.apstra.aaa_server:
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+          aaa_server: "o3PSx0QW1qh7NyqZoQ"
+        body:
+          auth_port: 1645
+        state: present
+
+    - name: List all AAA servers in a blueprint
+      juniper.apstra.aaa_server:
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+        state: query
+
+    - name: Delete an AAA server by label
+      juniper.apstra.aaa_server:
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+        body:
+          label: "radius-1"
+        state: absent
+
+    - name: Delete an AAA server by ID
+      juniper.apstra.aaa_server:
+        id:
+          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
+          aaa_server: "o3PSx0QW1qh7NyqZoQ"
         state: absent
 
 
@@ -501,9 +492,94 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-aaa_server"></div>
+
+      .. _ansible_collections.juniper.apstra.aaa_server_module__return-aaa_server:
+
+      .. rst-class:: ansible-option-title
+
+      **aaa_server**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-aaa_server" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The AAA server object details. The :literal:`key` (shared secret) is never included because the Apstra API does not return it.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` on create or update
+
+      .. rst-class:: ansible-option-line
+      .. rst-class:: ansible-option-sample
+
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"acct\_port": 1813, "auth\_port": 1812, "hostname": "10.1.1.10", "id": "o3PSx0QW1qh7NyqZoQ", "label": "radius\-1", "server\_type": "radius\_dot1x"}`
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-aaa_servers"></div>
+
+      .. _ansible_collections.juniper.apstra.aaa_server_module__return-aaa_servers:
+
+      .. rst-class:: ansible-option-title
+
+      **aaa_servers**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-aaa_servers" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      List of all AAA servers in the blueprint.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when state is query
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-changed"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-changed:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__return-changed:
 
       .. rst-class:: ansible-option-title
 
@@ -543,7 +619,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-changes"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-changes:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__return-changes:
 
       .. rst-class:: ansible-option-title
 
@@ -583,7 +659,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-id"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-id:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__return-id:
 
       .. rst-class:: ansible-option-title
 
@@ -605,17 +681,17 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The ID dictionary of the external gateway.
+      The blueprint and AAA server IDs.
 
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-returned-bold:`Returned:` on create, or when object identified by gw\_name
+      :ansible-option-returned-bold:`Returned:` on create, or when object identified by label
 
       .. rst-class:: ansible-option-line
       .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962", "remote\_gateway": "baV2vCzUKgv2mbYopw"}`
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"aaa\_server": "o3PSx0QW1qh7NyqZoQ", "blueprint": "5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962"}`
 
 
       .. raw:: html
@@ -628,7 +704,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-msg"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-msg:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__return-msg:
 
       .. rst-class:: ansible-option-title
 
@@ -666,54 +742,9 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-remote_gateway"></div>
-
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-remote_gateway:
-
-      .. rst-class:: ansible-option-title
-
-      **remote_gateway**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-remote_gateway" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The external gateway object details.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` on create or update
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"evpn\_route\_types": "all", "gw\_asn": 65500, "gw\_ip": "10.1.0.1", "gw\_name": "dc2\_border\_gw", "holdtime\_timer": 30, "id": "baV2vCzUKgv2mbYopw", "keepalive\_timer": 10, "local\_gw\_nodes": [{"label": "spine1", "node\_id": "PPbnMs25oIuO8WHldA", "role": "spine"}], "ttl": 2}`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-response"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-response:
+      .. _ansible_collections.juniper.apstra.aaa_server_module__return-response:
 
       .. rst-class:: ansible-option-title
 
@@ -735,7 +766,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The external gateway object details.
+      The AAA server object details. The :literal:`key` (shared secret) is never included.
 
 
       .. rst-class:: ansible-option-line
@@ -757,7 +788,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 Authors
 ~~~~~~~
 
-- Vamsi Gavini (@vgavini)
+- Prabhanjan K V (@prabhanjankv)
 
 
 .. Extra links
