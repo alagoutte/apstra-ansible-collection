@@ -72,13 +72,9 @@
         blueprint_label == ''
         and all_bp_facts.ansible_facts.apstra_facts.blueprints | length > 0
 
-    - name: "Skip all tests — no blueprints available"
-      ansible.builtin.debug:
-        msg: "No blueprints found on this Apstra instance — skipping all os_upgrade tests."
-      when: blueprint_label == ''
-
-    - name: "End play — no blueprints available"
-      ansible.builtin.meta: end_play
+    - name: "Fail if no blueprints available"
+      ansible.builtin.fail:
+        msg: "No blueprints found on this Apstra instance. Pass -e blueprint_label=<label> or ensure a blueprint exists."
       when: blueprint_label == ''
 
     - name: "Show blueprint in use"
