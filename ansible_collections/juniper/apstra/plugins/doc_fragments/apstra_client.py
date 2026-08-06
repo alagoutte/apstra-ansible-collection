@@ -37,4 +37,6 @@ options:
       - The authentication token to use if already authenticated.
     type: str
     required: false
+    no_log: true
+
 """

@@ -793,7 +793,7 @@ def main():
 
             # Return the final object state (avoid re-reading after updates
             # because SDK may return stale cached data; for creates, fetch
-            # the full server-populated object)
+            # the full server-populated object).
             if current_object is not None:
                 result[leaf_object_type] = current_object
             else:

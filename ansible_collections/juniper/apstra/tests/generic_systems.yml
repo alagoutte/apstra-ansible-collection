@@ -36,6 +36,16 @@
     #  Blueprint Setup
     # ══════════════════════════════════════════════════════════════════
 
+    - name: Delete blueprint if it exists (ensure clean state)
+      juniper.apstra.blueprint:
+        id:
+          blueprint: "{{ blueprint_name }}"
+        lock_state: "ignore"
+        state: absent
+        auth_token: "{{ auth.token }}"
+      ignore_errors: true
+      when: not use_existing_blueprint | bool
+
     - name: Create blueprint
       juniper.apstra.blueprint:
         body:
@@ -1114,7 +1124,7 @@
         state: present
         auth_token: "{{ auth.token }}"
       register: no_links_result
-      failed_when: false
+      ignore_errors: true
 
     - name: Verify missing links error
       ansible.builtin.assert:
@@ -1140,7 +1150,7 @@
         state: present
         auth_token: "{{ auth.token }}"
       register: dup_links_result
-      failed_when: false
+      ignore_errors: true
 
     - name: Verify duplicate link error
       ansible.builtin.assert:

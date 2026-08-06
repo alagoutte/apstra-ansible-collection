@@ -240,34 +240,37 @@
 
     - name: Create connectivity template (BGP-2-SRX)
       juniper.apstra.connectivity_template:
-        blueprint_id: "{{ blueprint_id }}"
-        name: "{{ ct_name }}"
-        type: interface
-        state: present
-        primitives:
-          ip_links:
-            ip_link_1:
-              interface_type: "untagged"
-              ipv4_addressing_type: "numbered"
-              ipv6_addressing_type: "none"
-              security_zone: "{{ default_routing_zone_id }}"
-              bgp_peering_generic_systems:
-                bgp_peering_1:
-                  session_addressing_ipv4: "addressed"
-                  session_addressing_ipv6: "none"
-                  neighbor_asn_type: "static"
-                  peer_from: "interface"
-                  peer_to: "interface_or_ip_endpoint"
-                  bfd: true
-                  keepalive_timer: 10
-                  holdtime_timer: 30
-                  ttl: 2
-                  ipv4_safi: true
-                  ipv6_safi: false
-                  routing_policies:
-                    rp_1:
-                      rp_to_attach: "{{ routing_policy_id }}"
         auth_token: "{{ auth.token }}"
+        verify_certificates: false
+        id:
+          blueprint: "{{ blueprint_id }}"
+        state: present
+        body:
+          name: "{{ ct_name }}"
+          type: interface
+          primitives:
+            ip_links:
+              ip_link_1:
+                interface_type: "untagged"
+                ipv4_addressing_type: "numbered"
+                ipv6_addressing_type: "none"
+                security_zone: "{{ default_routing_zone_id }}"
+                bgp_peering_generic_systems:
+                  bgp_peering_1:
+                    session_addressing_ipv4: "addressed"
+                    session_addressing_ipv6: "none"
+                    neighbor_asn_type: "static"
+                    peer_from: "interface"
+                    peer_to: "interface_or_ip_endpoint"
+                    bfd: true
+                    keepalive_timer: 10
+                    holdtime_timer: 30
+                    ttl: 2
+                    ipv4_safi: true
+                    ipv6_safi: false
+                    routing_policies:
+                      rp_1:
+                        rp_to_attach: "{{ routing_policy_id }}"
       register: ct_result
 
     - name: Show CT result
@@ -299,7 +302,7 @@
         leaf_interface_ids: >-
           {%- set ext_ids = external_nodes | map(attribute='id') | list -%}
           {%- set iface_ids = [] -%}
-          {%- for link in cabling_map_response.json.links | default([]) -%}
+          {%- for link in (cabling_map_response.content | from_json).links | default([]) -%}
             {%- set eps = link.endpoints | default([]) -%}
             {%- if eps | length == 2 -%}
               {%- set ep0_sys = eps[0].system.id | default('') -%}
@@ -339,11 +342,14 @@
 
     - name: Assign connectivity template to leaf interfaces
       juniper.apstra.connectivity_template_assignment:
-        blueprint_id: "{{ blueprint_id }}"
-        ct_name: "{{ ct_name }}"
-        application_point_ids: "{{ leaf_interface_ids }}"
-        state: present
         auth_token: "{{ auth.token }}"
+        verify_certificates: false
+        id:
+          blueprint: "{{ blueprint_id }}"
+          ct_name: "{{ ct_name }}"
+        body:
+          application_point_ids: "{{ leaf_interface_ids }}"
+        state: present
       register: ct_assign_result
 
     - name: Show CT assignment result
