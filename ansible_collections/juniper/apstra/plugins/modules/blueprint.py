@@ -157,17 +157,17 @@ options:
     required: false
     type: str
     choices:
-      - "present"
-      - "committed"
-      - "absent"
-      - "queried"
-      - "node_updated"
-      - "rack_added"
-      - "rack_deleted"
-      - "commit_check"
-      - "interface_updated"
-      - "interface_tagged"
-      - "lag_updated"
+      - present
+      - committed
+      - absent
+      - queried
+      - node_updated
+      - rack_added
+      - rack_deleted
+      - commit_check
+      - interface_updated
+      - interface_tagged
+      - lag_updated
     default: "present"
   include_warnings:
     description:
