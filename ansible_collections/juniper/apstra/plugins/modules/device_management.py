@@ -11,7 +11,7 @@ DOCUMENTATION = r"""
 ---
 module: device_management
 short_description: Manage physical devices through Apstra (reboot, etc.)
-version_added: "1.0.0"
+version_added: "1.1.0"
 description:
   - Provides lifecycle operations for devices managed by Apstra.
   - C(state=rebooted) — Triggers a device reboot via the system agent.
