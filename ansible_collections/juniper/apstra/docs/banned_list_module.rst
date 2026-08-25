@@ -13,18 +13,18 @@
 
 .. Title
 
-juniper.apstra.banned_list module -- Manage platform-level IP/subnet ban list (denylist) in Apstra
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+juniper.apstra.banned_list module -- Manage platform\-level IP/subnet ban list (denylist) in Apstra
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.2.0).
+    This module is part of the `juniper.apstra collection <https://galaxy.ansible.com/ui/repo/published/juniper/apstra/>`_ (version 1.1.0).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
-    To install it, use: :code:`ansible-galaxy collection install juniper.apstra`.
+    To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
     To use it in a playbook, specify: :code:`juniper.apstra.banned_list`.
 
@@ -32,146 +32,571 @@ juniper.apstra.banned_list module -- Manage platform-level IP/subnet ban list (d
 
 .. rst-class:: ansible-version-added
 
-New in juniper.apstra 1.2.0
+New in juniper.apstra 1.1.0
 
 .. contents::
    :local:
    :depth: 1
 
+.. Deprecated
+
+
 Synopsis
 --------
 
-- Manage platform-level IP/subnet ban list (denylist) in Apstra.
+.. Description
+
+- Manage platform\-level IP/subnet ban list (denylist) in Apstra.
 - IP/subnets that violate rate limit rules are automatically added to the banned list and are locked out for the configured lockout period.
 - Admins can remove IP/subnets from the banned list to immediately allow logins from that IP/subnet.
-- Maps to C(/api/aaa/ratelimit/denylist).
-- Supports IP/subnet delete and query operations only (entries are auto-added by the rate limiter).
+- Maps to :literal:`/api/aaa/ratelimit/denylist`.
+- Supports IP/subnet delete and query operations only (entries are auto\-added by the rate limiter).
 - Changes to the banned list are recorded in the event log.
 
 
+.. Aliases
+
+
+.. Requirements
+
+
+
+
+
+
+.. Options
+
 Parameters
 ----------
+
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
 
 .. list-table::
   :width: 100%
   :widths: auto
   :header-rows: 1
+  :class: longtable ansible-option-table
 
   * - Parameter
-    - Type
-    - Required
-    - Description
+    - Comments
 
-  * - api_url
-    - string
-    - false
-    - Apstra API URL. Defaults to C(APSTRA_API_URL) env var.
+  * - .. raw:: html
 
-  * - verify_certificates
-    - boolean
-    - false
-    - Verify TLS certificates. Default: C(true)
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-api_url"></div>
 
-  * - username
-    - string
-    - false
-    - Apstra username for SDK login. Defaults to C(APSTRA_USERNAME) env var.
+      .. _ansible_collections.juniper.apstra.banned_list_module__parameter-api_url:
 
-  * - password
-    - string
-    - false
-    - Apstra password for SDK login. Defaults to C(APSTRA_PASSWORD) env var.
+      .. rst-class:: ansible-option-title
 
-  * - auth_token
-    - string
-    - false
-    - Pre-existing auth token. Defaults to C(APSTRA_AUTH_TOKEN) env var.
+      **api_url**
 
-  * - ip_subnet
-    - string
-    - false
-    - | IP address or subnet CIDR notation to remove from the ban list.
-      | Required for C(state) C(absent).
-      | Note - entries cannot be manually created; they are automatically added
-      |   by the rate limiter when IP/subnets violate rate limit rules.
-      | Examples: C(192.168.1.10), C(10.0.0.0/24), C(2001:db8::1/32).
+      .. raw:: html
 
-  * - state
-    - string
-    - false
-    - | Desired state for ban list management.
-      | C(absent) - remove an IP/subnet from the ban list.
-      | C(query) - retrieve all entries in the ban list (default).
-      | Note - C(present) is not supported since entries are auto-added.
+        <a class="ansibleOptionLink" href="#parameter-api_url" title="Permalink to this option"></a>
 
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Apstra API URL. Defaults to :literal:`APSTRA\_API\_URL` env var.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-auth_token"></div>
+
+      .. _ansible_collections.juniper.apstra.banned_list_module__parameter-auth_token:
+
+      .. rst-class:: ansible-option-title
+
+      **auth_token**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-auth_token" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Pre\-existing auth token. Defaults to :literal:`APSTRA\_AUTH\_TOKEN` env var.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-ip_subnet"></div>
+
+      .. _ansible_collections.juniper.apstra.banned_list_module__parameter-ip_subnet:
+
+      .. rst-class:: ansible-option-title
+
+      **ip_subnet**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-ip_subnet" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      IP address or subnet CIDR notation to remove from the ban list.
+
+      Required for :literal:`state` :literal:`absent`.
+
+      Note \- entries cannot be manually created; they are automatically added by the rate limiter when IP/subnets violate rate limit rules.
+
+      Examples :literal:`192.168.1.10`\ , :literal:`10.0.0.0/24`\ , :literal:`2001:db8::1/32`.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-password"></div>
+
+      .. _ansible_collections.juniper.apstra.banned_list_module__parameter-password:
+
+      .. rst-class:: ansible-option-title
+
+      **password**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-password" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Apstra password for SDK login. Defaults to :literal:`APSTRA\_PASSWORD` env var.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-state"></div>
+
+      .. _ansible_collections.juniper.apstra.banned_list_module__parameter-state:
+
+      .. rst-class:: ansible-option-title
+
+      **state**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-state" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Desired state for ban list management.
+
+      :literal:`absent` \- remove an IP/subnet from the ban list.
+
+      :literal:`query` \- retrieve all entries in the ban list (default).
+
+      Note \- :literal:`present` is not supported since entries are auto\-added.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`"absent"`
+      - :ansible-option-choices-entry-default:`"query"` :ansible-option-choices-default-mark:`← (default)`
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-username"></div>
+
+      .. _ansible_collections.juniper.apstra.banned_list_module__parameter-username:
+
+      .. rst-class:: ansible-option-title
+
+      **username**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-username" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Apstra username for SDK login. Defaults to :literal:`APSTRA\_USERNAME` env var.
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-verify_certificates"></div>
+
+      .. _ansible_collections.juniper.apstra.banned_list_module__parameter-verify_certificates:
+
+      .. rst-class:: ansible-option-title
+
+      **verify_certificates**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-verify_certificates" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Verify TLS certificates.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`false`
+      - :ansible-option-choices-entry-default:`true` :ansible-option-choices-default-mark:`← (default)`
+
+
+      .. raw:: html
+
+        </div>
+
+
+.. Attributes
+
+
+.. Notes
+
+
+.. Seealso
+
+
+.. Examples
 
 Examples
 --------
 
 .. code-block:: yaml+jinja
 
-  - name: List all banned IP addresses
-    juniper.apstra.banned_list:
-      state: query
-    register: result
+    - name: List all banned IP addresses
+      juniper.apstra.banned_list:
+        state: query
+      register: result
 
-  - name: Show all banned entries
-    debug:
-      msg: "{{ result.banned_list }}"
+    - name: Show all banned entries
+      debug:
+        msg: "{{ result.banned_list }}"
 
-  - name: Remove IP from ban list (allow it to login again)
-    juniper.apstra.banned_list:
-      ip_subnet: "192.168.1.100"
-      state: absent
+    - name: Remove IP from ban list (allow it to login again)
+      juniper.apstra.banned_list:
+        ip_subnet: "192.168.1.100"
+        state: absent
 
-  - name: Unban a subnet
-    juniper.apstra.banned_list:
-      ip_subnet: "10.0.0.0/24"
-      state: absent
+    - name: Unban a subnet
+      juniper.apstra.banned_list:
+        ip_subnet: "10.0.0.0/24"
+        state: absent
 
+
+
+.. Facts
+
+
+.. Return values
 
 Return Values
 -------------
+Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this module:
+
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
 
 .. list-table::
   :width: 100%
   :widths: auto
   :header-rows: 1
+  :class: longtable ansible-option-table
 
   * - Key
-    - Type
-    - Returned
     - Description
 
-  * - changed
-    - boolean
-    - always
-    - Whether any change was made.
+  * - .. raw:: html
 
-  * - message
-    - string
-    - always
-    - Result message.
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-banned_list"></div>
 
-  * - banned_list
-    - list
-    - when state is C(query)
-    - | List of all IP/subnet entries in the ban list (denylist).
-      | Each item typically includes C(subnet).
+      .. _ansible_collections.juniper.apstra.banned_list_module__return-banned_list:
 
-  * - id
-    - string
-    - when entry is removed
-    - | The ID of the entry removed (if applicable).
+      .. rst-class:: ansible-option-title
+
+      **banned_list**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-banned_list" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      List of all IP/subnet entries in the ban list (denylist).
 
 
-Status
-------
+      .. rst-class:: ansible-option-line
 
-- This module is not guaranteed to have a backwards compatible interface.
+      :ansible-option-returned-bold:`Returned:` when state is :literal:`query`
 
+      .. rst-class:: ansible-option-line
+      .. rst-class:: ansible-option-sample
+
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`[{"ip\_subnet": "192.168.1.100"}, {"ip\_subnet": "10.0.0.0/24"}]`
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-changed"></div>
+
+      .. _ansible_collections.juniper.apstra.banned_list_module__return-changed:
+
+      .. rst-class:: ansible-option-title
+
+      **changed**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-changed" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Whether any change was made.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` always
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-id"></div>
+
+      .. _ansible_collections.juniper.apstra.banned_list_module__return-id:
+
+      .. rst-class:: ansible-option-title
+
+      **id**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-id" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      The ID of the entry removed (if applicable).
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` when entry is removed
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-message"></div>
+
+      .. _ansible_collections.juniper.apstra.banned_list_module__return-message:
+
+      .. rst-class:: ansible-option-title
+
+      **message**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-message" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Result message.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` always
+
+
+      .. raw:: html
+
+        </div>
+
+
+
+..  Status (Presently only deprecated)
+
+
+.. Authors
 
 Authors
--------
+~~~~~~~
 
 - Shirish Ranoji (@sranoji)
+
+
+.. Extra links
+
+Collection links
+~~~~~~~~~~~~~~~~
+
+.. ansible-links::
+
+  - title: "Issue Tracker"
+    url: "https://github.com/Juniper/apstra-ansible-collection/issues"
+    external: true
+  - title: "Homepage"
+    url: "https://www.juniper.net/us/en/products/network-automation/apstra.html"
+    external: true
+  - title: "Repository (Sources)"
+    url: "https://github.com/Juniper/apstra-ansible-collection"
+    external: true
+
+
+.. Parsing errors

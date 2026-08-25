@@ -7,14 +7,14 @@
 
 .. Anchors
 
-.. _ansible_collections.juniper.apstra.external_gateway_module:
+.. _ansible_collections.juniper.apstra.floating_ip_module:
 
 .. Anchors: short name for ansible.builtin
 
 .. Title
 
-juniper.apstra.external_gateway module -- Manage external (remote) EVPN gateways in Apstra blueprints
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+juniper.apstra.floating_ip module -- Manage Floating IPs in an Apstra blueprint
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
@@ -26,7 +26,7 @@ juniper.apstra.external_gateway module -- Manage external (remote) EVPN gateways
 
     To install it, use: :code:`ansible\-galaxy collection install juniper.apstra`.
 
-    To use it in a playbook, specify: :code:`juniper.apstra.external_gateway`.
+    To use it in a playbook, specify: :code:`juniper.apstra.floating_ip`.
 
 .. version_added
 
@@ -46,10 +46,11 @@ Synopsis
 
 .. Description
 
-- This module allows you to create, update, and delete external (remote) EVPN gateways within an Apstra blueprint.
-- Remote EVPN Gateways are logical functions that can be instantiated on any device with BGP and L2VPN/EVPN AFI/SAFI support.
-- To establish a BGP session with an EVPN gateway, IP connectivity and access to TCP port 179 must be available.
-- This module operates at the blueprint scope and requires a Datacenter (two\_stage\_l3clos) design.
+- Create, update, query, or delete Floating IP addresses within an Apstra blueprint.
+- Floating IPs (VIP endpoints) are typically auto\-created by Apstra when Connectivity Templates assign them. This module also allows creating them manually, renaming them (\ :literal:`label`\ ), setting a :literal:`description`\ , and changing the IP address (\ :literal:`ipv4\_addr` / :literal:`ipv6\_addr`\ ).
+- Use :literal:`state=queried` to list all floating IPs or retrieve a single one.
+- Use :literal:`state=present` to create or update a floating IP (idempotent).
+- Use :literal:`state=absent` to delete a floating IP.
 
 
 .. Aliases
@@ -83,7 +84,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_url"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-api_url:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-api_url:
 
       .. rst-class:: ansible-option-title
 
@@ -117,7 +118,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-auth_token"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-auth_token:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-auth_token:
 
       .. rst-class:: ansible-option-title
 
@@ -151,7 +152,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-body"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-body:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-body:
 
       .. rst-class:: ansible-option-title
 
@@ -173,27 +174,25 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the external gateway details.
+      Desired properties of the floating IP.
 
-      :literal:`gw\_name` (string) \- Gateway name (required for create).
+      :literal:`label` (str) — display name shown in the Apstra UI.
 
-      :literal:`gw\_ip` (string) \- Gateway IPv4 or IPv6 address (required for create).
+      :literal:`description` (str) — free\-text description.
 
-      :literal:`gw\_asn` (integer) \- Gateway AS number, 1\-4294967295 (required for create).
+      :literal:`ipv4\_addr` (str) — IPv4 address in CIDR format (e.g. :literal:`10.2.22.201/24`\ ).
 
-      :literal:`local\_gw\_nodes` (list of strings) \- IDs of AOS system nodes (spines, leafs, or superspines) that establish BGP EVPN peering with the remote gateway (required for create).
+      :literal:`ipv6\_addr` (str) — IPv6 address in CIDR format.
 
-      :literal:`password` (string) \- BGP session password (optional).
+      :literal:`virtual\_network` (str) — Virtual network name or UUID. Used as a lookup key to find the floating IP that belongs to that VN. Particularly useful for auto\-created floating IPs which have no label.
 
-      :literal:`ttl` (integer) \- Time to live in hops (optional).
+      :literal:`virtual\_network\_id` (str) — UUID of the associated virtual network (create only).
 
-      :literal:`keepalive\_timer` (integer) \- BGP keepalive timer in seconds (optional).
+      :literal:`vn\_endpoints` (list) — list of VN endpoint IDs (create only).
 
-      :literal:`holdtime\_timer` (integer) \- BGP hold time timer in seconds (optional).
+      :literal:`generic\_system\_ids` (list) — list of generic system IDs (create only).
 
-      :literal:`evpn\_route\_types` (string) \- Permitted EVPN route types, :literal:`all` or :literal:`type5\_only` (optional).
-
-      :literal:`evpn\_interconnect\_group\_id` (string) \- Node ID of an EVPN interconnect group (optional).
+      When :literal:`state=present`\ , only supplied fields are changed.
 
 
       .. raw:: html
@@ -205,7 +204,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-id"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-id:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-id:
 
       .. rst-class:: ansible-option-title
 
@@ -227,11 +226,11 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Dictionary containing the blueprint and remote gateway IDs.
+      Identifies the blueprint and optionally the floating IP node.
 
-      :literal:`blueprint` is always required.
+      :literal:`blueprint` (str, required) — blueprint name or UUID.
 
-      :literal:`remote\_gateway` is optional for create (looked up by :literal:`gw\_name` from :literal:`body` for idempotency), required for update/delete.
+      :literal:`floating\_ip` (str, optional) — floating IP node UUID. If omitted, the module searches by :literal:`body.label` or :literal:`body.ipv4\_addr`. For creation, a UUID is auto\-generated when no existing floating IP is found.
 
 
       .. raw:: html
@@ -243,7 +242,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-password"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-password:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-password:
 
       .. rst-class:: ansible-option-title
 
@@ -277,7 +276,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-state"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-state:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-state:
 
       .. rst-class:: ansible-option-title
 
@@ -299,7 +298,11 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Desired state of the external gateway.
+      :literal:`present` — create or update the floating IP (idempotent).
+
+      :literal:`absent` — delete the floating IP.
+
+      :literal:`queried` — list all floating IPs or retrieve a single one (read\-only).
 
 
       .. rst-class:: ansible-option-line
@@ -308,6 +311,7 @@ Parameters
 
       - :ansible-option-choices-entry-default:`"present"` :ansible-option-choices-default-mark:`← (default)`
       - :ansible-option-choices-entry:`"absent"`
+      - :ansible-option-choices-entry:`"queried"`
 
 
       .. raw:: html
@@ -319,7 +323,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-username"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-username:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-username:
 
       .. rst-class:: ansible-option-title
 
@@ -353,7 +357,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-verify_certificates"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__parameter-verify_certificates:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__parameter-verify_certificates:
 
       .. rst-class:: ansible-option-title
 
@@ -407,73 +411,103 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    # Create an external gateway
-    - name: Create external gateway
-      juniper.apstra.external_gateway:
+    # List all floating IPs in a blueprint
+    - name: List floating IPs
+      juniper.apstra.floating_ip:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-        body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.1"
-          gw_asn: 65500
-          local_gw_nodes:
-            - "PPbnMs25oIuO8WHldA"
-          ttl: 2
-          keepalive_timer: 10
-          holdtime_timer: 30
-          evpn_route_types: "all"
-        state: present
-      register: ext_gw
+          blueprint: "my-blueprint"
+        state: queried
+      register: fip_result
 
-    # Update an external gateway
-    - name: Update external gateway
-      juniper.apstra.external_gateway:
+    - name: Show floating IPs
+      ansible.builtin.debug:
+        var: fip_result.floating_ips
+
+    # Get a single floating IP by node ID
+    - name: Get floating IP by ID
+      juniper.apstra.floating_ip:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-          remote_gateway: "{{ ext_gw.id.remote_gateway }}"
-        body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.2"
-          gw_asn: 65501
-          local_gw_nodes:
-            - "PPbnMs25oIuO8WHldA"
-          ttl: 5
-        state: present
+          blueprint: "my-blueprint"
+          floating_ip: "{{ fip_node_id }}"
+        state: queried
+      register: fip
 
-    # Update by gw_name lookup (idempotent)
-    - name: Update external gateway by name
-      juniper.apstra.external_gateway:
-        id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-        body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.3"
-          gw_asn: 65502
-          local_gw_nodes:
-            - "PPbnMs25oIuO8WHldA"
-        state: present
-
-    # Use system node labels instead of graph node IDs for local_gw_nodes
-    - name: Create external gateway using node names
-      juniper.apstra.external_gateway:
+    # Create a new floating IP (POST)
+    - name: Create a floating IP
+      juniper.apstra.floating_ip:
         id:
           blueprint: "my-blueprint"
         body:
-          gw_name: "dc2_border_gw"
-          gw_ip: "10.1.0.1"
-          gw_asn: 65500
-          local_gw_nodes:
-            - "border-leaf-1"
-            - "border-leaf-2"
-          ttl: 2
+          label: "Tenant5-VIP"
+          description: "Primary VIP for Tenant5"
+          ipv4_addr: "10.2.22.201/24"
+        state: present
+      register: fip_create
+
+    # --- PATCH (update) examples ---
+    # The module detects whether the floating IP already exists.
+    # If it does, it issues a PATCH with only the changed fields.
+
+    # PATCH by node ID — most explicit; supply id.floating_ip directly
+    - name: Update floating IP label by node ID (PATCH)
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+          floating_ip: "{{ fip_node_id }}"
+        body:
+          label: "Tenant5-VIP-renamed"
+          description: "Updated description"
         state: present
 
-    # Delete an external gateway
-    - name: Delete external gateway
-      juniper.apstra.external_gateway:
+    # PATCH by label — module looks up the node ID first, then PATCHes
+    - name: Update floating IP address by label lookup (PATCH)
+      juniper.apstra.floating_ip:
         id:
-          blueprint: "5f2a77f6-1f33-4e11-8d59-6f9c26f16962"
-          remote_gateway: "{{ ext_gw.id.remote_gateway }}"
+          blueprint: "my-blueprint"
+        body:
+          label: "Tenant5-VIP"          # used to FIND the floating IP
+          ipv4_addr: "10.2.22.210/24"   # new address to set via PATCH
+        state: present
+
+    # PATCH by VN name — finds the floating IP that belongs to a virtual network.
+    # Auto-created floating IPs have no label; use virtual_network to locate them.
+    - name: Name an auto-created floating IP by its VN (PATCH)
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          virtual_network: "Tenant2-VLAN22"   # VN name or UUID — used to FIND the floating IP
+          label: "Tenant2-VIP"                # new label to set via PATCH
+          description: "Auto-created VIP for Tenant2"
+        state: present
+
+    # PATCH by IPv4 address — useful when label is unknown
+    - name: Update floating IP description by ipv4_addr lookup (PATCH)
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          ipv4_addr: "10.2.22.201/24"   # used to FIND the floating IP
+          description: "Found by IP"    # new description to set via PATCH
+        state: present
+
+    # Idempotent update — no change if values already match
+    - name: Ensure floating IP has expected label (idempotent PATCH)
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+          floating_ip: "{{ fip_node_id }}"
+        body:
+          label: "Tenant5-VIP"
+        state: present
+
+    # Delete a floating IP by label
+    - name: Delete floating IP
+      juniper.apstra.floating_ip:
+        id:
+          blueprint: "my-blueprint"
+        body:
+          label: "Tenant5-VIP"
         state: absent
 
 
@@ -503,7 +537,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-changed"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-changed:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__return-changed:
 
       .. rst-class:: ansible-option-title
 
@@ -525,7 +559,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      Indicates whether the module has made any changes.
+      Whether the floating IP was changed.
 
 
       .. rst-class:: ansible-option-line
@@ -541,17 +575,17 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-changes"></div>
+        <div class="ansibleOptionAnchor" id="return-floating_ip"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-changes:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__return-floating_ip:
 
       .. rst-class:: ansible-option-title
 
-      **changes**
+      **floating_ip**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#return-changes" title="Permalink to this return value"></a>
+        <a class="ansibleOptionLink" href="#return-floating_ip" title="Permalink to this return value"></a>
 
       .. ansible-option-type-line::
 
@@ -565,12 +599,17 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      Dictionary of updates that were applied.
+      The current state of the floating IP after the operation.
 
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-returned-bold:`Returned:` on update
+      :ansible-option-returned-bold:`Returned:` when state is present and a single floating IP is targeted
+
+      .. rst-class:: ansible-option-line
+      .. rst-class:: ansible-option-sample
+
+      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"description": "Primary VIP for Tenant5", "id": "abc123", "immutable": false, "ipv4\_addr": "10.2.22.201/24", "label": "Tenant5\-VIP"}`
 
 
       .. raw:: html
@@ -581,21 +620,21 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-id"></div>
+        <div class="ansibleOptionAnchor" id="return-floating_ips"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-id:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__return-floating_ips:
 
       .. rst-class:: ansible-option-title
 
-      **id**
+      **floating_ips**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#return-id" title="Permalink to this return value"></a>
+        <a class="ansibleOptionLink" href="#return-floating_ips" title="Permalink to this return value"></a>
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary`
+        :ansible-option-type:`list` / :ansible-option-elements:`elements=dictionary`
 
       .. raw:: html
 
@@ -605,17 +644,12 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The ID dictionary of the external gateway.
+      List of all floating IPs in the blueprint.
 
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-returned-bold:`Returned:` on create, or when object identified by gw\_name
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"blueprint": "5f2a77f6\-1f33\-4e11\-8d59\-6f9c26f16962", "remote\_gateway": "baV2vCzUKgv2mbYopw"}`
+      :ansible-option-returned-bold:`Returned:` when state is queried and no floating\_ip ID is specified
 
 
       .. raw:: html
@@ -628,7 +662,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-msg"></div>
 
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-msg:
+      .. _ansible_collections.juniper.apstra.floating_ip_module__return-msg:
 
       .. rst-class:: ansible-option-title
 
@@ -650,97 +684,12 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <div class="ansible-option-cell">
 
-      The output message that the module generates.
+      Human\-readable result message.
 
 
       .. rst-class:: ansible-option-line
 
       :ansible-option-returned-bold:`Returned:` always
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-remote_gateway"></div>
-
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-remote_gateway:
-
-      .. rst-class:: ansible-option-title
-
-      **remote_gateway**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-remote_gateway" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The external gateway object details.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` on create or update
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"evpn\_route\_types": "all", "gw\_asn": 65500, "gw\_ip": "10.1.0.1", "gw\_name": "dc2\_border\_gw", "holdtime\_timer": 30, "id": "baV2vCzUKgv2mbYopw", "keepalive\_timer": 10, "local\_gw\_nodes": [{"label": "spine1", "node\_id": "PPbnMs25oIuO8WHldA", "role": "spine"}], "ttl": 2}`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-response"></div>
-
-      .. _ansible_collections.juniper.apstra.external_gateway_module__return-response:
-
-      .. rst-class:: ansible-option-title
-
-      **response**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-response" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The external gateway object details.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` when state is present and changes are made
 
 
       .. raw:: html
